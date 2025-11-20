@@ -51,7 +51,7 @@ class DatabaseHelper {
     ''');
   }
 
-  delete() async {
+  Future<void> delete() async {
     await lock.synchronized(() async {
       Directory documentsDirectory = await getApplicationDocumentsDirectory();
       String path = join(documentsDirectory.path, 'supalist.db');
@@ -60,48 +60,49 @@ class DatabaseHelper {
     });
   }
 
-  add(Supalist itemlist) async {
-    await lock.synchronized(() async {
+  Future<int> add(Supalist itemlist) async {
+    return await lock.synchronized(() async {
       Database db = await instance.database;
       int listId = await db.insert('lists', itemlist.toMap());
 
       for (Item item in itemlist.items) {
         addItem(item, listId);
       }
+      return listId;
     });
   }
 
-  addItem(Item item, int listId) async {
-    await lock.synchronized(() async {
+  Future<int> addItem(Item item, int listId) async {
+    return await lock.synchronized(() async {
       Database db = await instance.database;
       Map<String, dynamic> map = item.toMap();
       map.addAll({'listId': listId });
-      await db.insert('items', map);
+      return await db.insert('items', map);
     });
   }
 
-  update(Supalist itemlist) async {
+  Future<void> update(Supalist itemlist) async {
     await lock.synchronized(() async {
       Database db = await instance.database;
       int failed = await db.update('lists', itemlist.toMap(), where: 'id = ?', whereArgs: [itemlist.id]);
       if (failed == 0) {
-        add(itemlist);
+        await add(itemlist);
         return;
       }
       for (Item item in itemlist.items) {
-        updateItem(item);
+        await updateItem(item);
       }
     });
   }
 
-  updateItem(Item item) async {
+  Future<void> updateItem(Item item) async {
     await lock.synchronized(() async {
       Database db = await instance.database;
       await db.update('items', item.toMap(), where: 'id = ?', whereArgs: [item.id]);
     });
   }
 
-  remove(int id) async {
+  Future<void> remove(int id) async {
     await lock.synchronized(() async {
       Database db = await instance.database;
       await db.delete('items', where: 'listId = ?', whereArgs: [id]);
@@ -109,7 +110,7 @@ class DatabaseHelper {
     });
   }
 
-  removeItem(int id) async {
+  Future<void> removeItem(int id) async {
     await lock.synchronized(() async {
       Database db = await instance.database;
       await db.delete('items', where: 'id = ?', whereArgs: [id]);

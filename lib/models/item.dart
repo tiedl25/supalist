@@ -1,5 +1,5 @@
 class Item{
-  final int? id;
+  int? id;
   String name;
   late DateTime timestamp;
   bool checked;
