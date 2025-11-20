@@ -2,13 +2,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:supalist/Dialogs/itemdialog.dart';
-import 'package:supalist/Helper/database.dart';
-import 'package:supalist/Models/supalist.dart';
-import 'package:supalist/Views/detailview.dart';
-
-import 'package:supalist/Views/settingsview.dart';
-import 'package:supalist/Helper/ui_model.dart';
+import 'package:supalist/ui/dialogs/itemdialog.dart';
+import 'package:supalist/data/database.dart';
+import 'package:supalist/models/supalist.dart';
+import 'package:supalist/ui/views/detailview.dart';
+  
+import 'package:supalist/ui/views/settingsview.dart';
+import 'package:supalist/ui/widgets/ui_model.dart';
 
 class MasterView extends StatefulWidget{
   final Function updateTheme;

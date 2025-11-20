@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:supalist/Helper/ui_model.dart';
-import 'package:supalist/Models/supalist.dart';
-import 'package:supalist/Helper/database.dart';
+import 'package:supalist/ui/widgets/ui_model.dart';
+import 'package:supalist/models/supalist.dart';
+import 'package:supalist/data/database.dart';
 
 class ItemDialog extends StatefulWidget {
   final Function updateItemList;

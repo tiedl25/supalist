@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'package:supalist/Helper/database.dart';
-import 'package:supalist/Helper/ui_model.dart';
-import 'package:supalist/Models/item.dart';
-import 'package:supalist/Models/supalist.dart';
+import 'package:supalist/data/database.dart';
+import 'package:supalist/ui/widgets/ui_model.dart';
+import 'package:supalist/models/item.dart';
+import 'package:supalist/models/supalist.dart';
 
 class DetailView extends StatefulWidget{
   final Supalist supalist;

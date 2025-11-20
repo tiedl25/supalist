@@ -1,4 +1,4 @@
-import 'package:supalist/Models/item.dart';
+import 'package:supalist/models/item.dart';
 
 class Supalist{
   final int? id;

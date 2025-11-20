@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supalist/Views/masterview.dart';
-import 'package:supalist/Theme/dark_theme.dart';
-import 'package:supalist/Theme/light_theme.dart';
+import 'package:supalist/ui/views/masterview.dart';
+import 'package:supalist/ui/theme/dark_theme.dart';
+import 'package:supalist/ui/theme/light_theme.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:supalist/Models/item.dart';
-import 'package:supalist/Models/supalist.dart';
+import 'package:supalist/models/item.dart';
+import 'package:supalist/models/supalist.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:sqflite/sqflite.dart';
 
