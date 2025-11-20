@@ -1,113 +1,72 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:supalist/bloc/masterview_bloc.dart';
+import 'package:supalist/bloc/masterview_states.dart';
 import 'package:supalist/ui/dialogs/itemdialog.dart';
-import 'package:supalist/data/database.dart';
 import 'package:supalist/models/supalist.dart';
-import 'package:supalist/ui/views/detailview.dart';
-  
-import 'package:supalist/ui/views/settingsview.dart';
 import 'package:supalist/ui/widgets/ui_model.dart';
 
-class MasterView extends StatefulWidget{
-  final Function updateTheme;
+class MasterView extends StatelessWidget {
+  late final MasterViewCubit cubit;
+  late final BuildContext context;
 
-  const MasterView({
+  MasterView({
     super.key,
-    required this.updateTheme,
   });
 
-  @override
-  State<StatefulWidget> createState() => _MasterViewState();
-}
-
-
-class _MasterViewState extends State<MasterView>{
-  List<Supalist> listOfSupalists = [];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
-        title: const Text('Supalist'),
-        actions: [
-          IconButton(
-              onPressed: _pushSettingsView,
-              icon: const Icon(Icons.settings
-              )
-          )
-        ],
-      ),
-      body: _buildBody(),
-      floatingActionButton: SpeedDial(
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-        spacing: 5,
-        animatedIcon: AnimatedIcons.menu_close,
-        animatedIconTheme: const IconThemeData(size: 22.0),
-        foregroundColor: Colors.white,
-        curve: Curves.bounceIn,
-        overlayColor: Colors.black,
-        overlayOpacity: 0.5,
-        children: [
-          SpeedDialChild(
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(15)),
-            ),
-            backgroundColor: Colors.purple,
-            foregroundColor: Colors.white,
-            child: const Icon(Icons.add),
-            onTap: _showAddDialog,
-          ),
-          if(kDebugMode) SpeedDialChild(
-            child: const Icon(Icons.remove),
-            onTap: () async {
-              setState(() {
-                DatabaseHelper.instance.delete();
-              });
-            }
-          ),
-        ],
-      )
-    );
+  void showAddDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return BlocProvider.value(
+          value: cubit,
+          child: ItemDialog(),
+        );
+      });
   }
 
-  Widget _buildBody() {
+  Widget body() {
     return Center(
-      child: FutureBuilder<List<Supalist>>(
-        future: DatabaseHelper.instance.getLists(),
-        builder: (BuildContext context, AsyncSnapshot<List<Supalist>> snapshot) {
-          if (!snapshot.hasData){
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.data!.isNotEmpty) {
-            listOfSupalists = snapshot.data!;
-          }
-          return RefreshIndicator(
-              child: snapshot.data!.isEmpty ?
-              ListView(
-                physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
-                padding: EdgeInsets.symmetric(vertical: MediaQuery.of(context).size.height/2.5),
-                children: const [Center(child: Text('No items in list', style: TextStyle(fontSize: 20),),)],
-              )
-                  : ListView.builder(
-                physics: const BouncingScrollPhysics(parent:AlwaysScrollableScrollPhysics()),
-                padding: const EdgeInsets.all(16),
-                itemCount: snapshot.data!.length,
-                itemBuilder: (context, i) {
-                  return _buildDismissible(snapshot.data![i]);
-                }
-              ),
-              onRefresh: (){
-                setState(() {});
-                return Future(() => null);
-              });
+      child: BlocBuilder<MasterViewCubit, MasterViewState>(
+          builder: (context, state) {
+        if (state is MasterViewLoading) {
+          return const Center(child: CircularProgressIndicator());
         }
-      ),
+        state as MasterViewLoaded;
+        final listOfSupalists = state.supalists;
+        return RefreshIndicator(
+            child: listOfSupalists.isEmpty
+                ? ListView(
+                    physics: const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics()),
+                    padding: EdgeInsets.symmetric(
+                        vertical: MediaQuery.of(context).size.height / 2.5),
+                    children: const [
+                      Center(
+                        child: Text(
+                          'No items in list',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      )
+                    ],
+                  )
+                : ListView.builder(
+                    physics: const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics()),
+                    padding: const EdgeInsets.all(16),
+                    itemCount: listOfSupalists.length,
+                    itemBuilder: (context, i) {
+                      return dismissible(listOfSupalists[i]);
+                    }),
+            onRefresh: () async => await cubit.loadSupalists());
+      }),
     );
   }
-  Widget _buildDismissible(Supalist supalist){
+
+  Widget dismissible(Supalist supalist) {
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
       decoration: const BoxDecoration(
@@ -117,28 +76,23 @@ class _MasterViewState extends State<MasterView>{
       child: Dismissible(
         key: UniqueKey(),
         direction: DismissDirection.endToStart,
-        onDismissed: (context) async {
-          setState(() {
-            listOfSupalists.removeWhere((element) => element.id == supalist.id);
-          });
-          DatabaseHelper.instance.remove(supalist.id!);
-        },
-        confirmDismiss: (direction){
+        onDismissed: (_) async => await cubit.removeSupalist(supalist.id!),
+        confirmDismiss: (direction) {
           return showDialog(
             context: context,
             builder: (BuildContext context) {
-              return StatefulBuilder(
-                  builder: (context, setState){
-                    return DialogModel(
-                        title: 'Confirm Dismiss',
-                        content: Container(
-                                padding: const EdgeInsets.all(5),
-                                child: const Text('Do you really want to remove this Item', style: TextStyle(fontSize: 20),),
-                              ),
-                        onConfirmed: (){}
-                    );
-                  }
-              );
+              return StatefulBuilder(builder: (context, setState) {
+                return DialogModel(
+                    title: 'Confirm Dismiss',
+                    content: Container(
+                      padding: const EdgeInsets.all(5),
+                      child: const Text(
+                        'Do you really want to remove this Item',
+                        style: TextStyle(fontSize: 20),
+                      ),
+                    ),
+                    onConfirmed: () {});
+              });
             },
           );
         },
@@ -149,12 +103,12 @@ class _MasterViewState extends State<MasterView>{
             Icons.delete,
           ),
         ),
-        child: _buildRow(supalist),
+        child: tile(supalist),
       ),
     );
   }
 
-  Widget _buildRow(Supalist supalist) {
+  Widget tile(Supalist supalist) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 2),
       decoration: BoxDecoration(
@@ -163,54 +117,63 @@ class _MasterViewState extends State<MasterView>{
         borderRadius: const BorderRadius.all(Radius.circular(15)),
       ),
       child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(15)),
+        ),
+        tileColor: Theme.of(context).colorScheme.surface,
+        title: Text(
+          supalist.name,
+          style: const TextStyle(fontSize: 20),
+        ),
+        onTap: () => Navigator.pushNamed(context, '/detail', arguments: supalist),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    this.context = context;
+    cubit = context.read<MasterViewCubit>();
+
+    return Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.background,
+        appBar: AppBar(
+          title: const Text('Supalist'),
+          actions: [
+            IconButton(
+              onPressed: () => Navigator.pushNamed(context, '/settings'), 
+              icon: const Icon(Icons.settings)
+            )
+          ],
+        ),
+        body: body(),
+        floatingActionButton: SpeedDial(
           shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(15)),
-          ),
-          tileColor: Theme.of(context).colorScheme.surface,
-          title: Text(supalist.name, style: const TextStyle(fontSize: 20),),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (BuildContext context){
-                  return DetailView(supalist: supalist,);
-                },
+              borderRadius: BorderRadius.all(Radius.circular(15))),
+          spacing: 5,
+          animatedIcon: AnimatedIcons.menu_close,
+          animatedIconTheme: const IconThemeData(size: 22.0),
+          foregroundColor: Colors.white,
+          curve: Curves.bounceIn,
+          overlayColor: Colors.black,
+          overlayOpacity: 0.5,
+          children: [
+            SpeedDialChild(
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(15)),
               ),
-            );
-          },
-      ),
-    );
-  }
-
-  _showAddDialog(){
-    showDialog(
-        context: context,
-        barrierDismissible: true, // user must tap button!
-        builder: (BuildContext context){
-          return ItemDialog(updateItemList: (itemlist) => setState(() => listOfSupalists.add(itemlist)),);
-        });
-  }
-
-  void _pushSettingsView(){
-    Navigator.push(
-      context,
-      MaterialPageRoute<void>(
-        builder: (BuildContext context){
-          return SettingsView(setParentState: setState, updateTheme: widget.updateTheme,);
-        },
-      ),
-    );
-  }
-
-  void _pushDetailView(){
-    Navigator.push(
-      context,
-      MaterialPageRoute<void>(
-        builder: (BuildContext context){
-          return DetailView(supalist: listOfSupalists[0],);
-        },
-      ),
-    );
+              backgroundColor: Colors.purple,
+              foregroundColor: Colors.white,
+              child: const Icon(Icons.add),
+              onTap: () => showAddDialog(),
+            ),
+            if (kDebugMode)
+              SpeedDialChild(
+                child: const Icon(Icons.remove),
+                onTap: () async => await cubit.deleteDatabase(),
+              ),
+          ],
+        ));
   }
 }

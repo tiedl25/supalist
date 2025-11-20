@@ -1,50 +1,72 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supalist/bloc/detailview_bloc.dart';
+import 'package:supalist/bloc/masterview_bloc.dart';
+import 'package:supalist/bloc/settingsview_bloc.dart';
+import 'package:supalist/bloc/theme_bloc.dart';
+import 'package:supalist/ui/views/detailview.dart';
 import 'package:supalist/ui/views/masterview.dart';
 import 'package:supalist/ui/theme/dark_theme.dart';
 import 'package:supalist/ui/theme/light_theme.dart';
+import 'package:supalist/ui/views/settingsview.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
+
+  final prefs = await SharedPreferences.getInstance();
+
+  runApp(MyApp(prefs: prefs));
 }
 
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+class MyApp extends StatelessWidget {
+  final SharedPreferences prefs;
 
-  @override
-  State<StatefulWidget> createState() => _MyAppState();
-}
+  MyApp({required this.prefs});
 
-class _MyAppState extends State<MyApp>{
-  bool _systemThemeToggle=true;
-  bool _darkModeToggle=false;
-
-  @override
-  void initState() {
-    super.initState();
-    loadSwitchValue(); // Load the switch value from SharedPreferences
-  }
-
-  Future<void> loadSwitchValue() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _systemThemeToggle = prefs.getBool('systemTheme') ?? true;
-      _darkModeToggle = prefs.getBool('darkMode') ?? false;
-    });
-  }
-
-  // This widget is the root of your application.
-  // It contains everything to run the application, nothing more
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Supalist',
-      theme: lightTheme,
-      darkTheme: darkTheme,
-      themeMode: _systemThemeToggle ? ThemeMode.system : (_darkModeToggle ? ThemeMode.dark : ThemeMode.light),
-      home: MasterView(updateTheme: loadSwitchValue,),
-      debugShowCheckedModeBanner: false,
+    return BlocProvider(
+      create: (context) => ThemeCubit(prefs),
+      child: BlocBuilder<ThemeCubit, ThemeMode>(
+        builder: (context, themeMode) {
+          return MaterialApp(
+            title: 'Supalist',
+            theme: lightTheme,
+            darkTheme: darkTheme,
+            themeMode: themeMode,
+            initialRoute: "/home",
+            routes: {
+              '/home': (context) => BlocProvider(
+                create: (context) => MasterViewCubit(),
+                child: MasterView(),
+              ),
+              '/settings': (context) => BlocProvider(
+                create: (context) =>
+                    SettingsViewCubit(context.read<ThemeCubit>()),
+                child: SettingsView(),
+              ),
+              // DetailView route is handled with onGenerateRoute to pass arguments
+            },
+            onGenerateRoute: (settings) {
+              if (settings.name == '/detail') {
+                final args = settings.arguments as dynamic;
+                final supalist = args;
+                return MaterialPageRoute(
+                  builder: (context) {
+                    return BlocProvider(
+                      create: (context) => DetailViewCubit(supalist),
+                      child: DetailView(),
+                    );
+                  },
+                );
+              }
+              return null;
+            },
+            debugShowCheckedModeBanner: false,
+          );
+        },
+      ),
     );
   }
 }
