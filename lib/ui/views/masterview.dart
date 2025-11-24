@@ -134,32 +134,38 @@ class MasterView extends StatelessWidget {
           ],
         ),
         body: body(),
-        floatingActionButton: SpeedDial(
-          shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(15))),
-          spacing: 5,
-          animatedIcon: AnimatedIcons.menu_close,
-          animatedIconTheme: const IconThemeData(size: 22.0),
-          foregroundColor: Colors.white,
-          curve: Curves.bounceIn,
-          overlayColor: Colors.black,
-          overlayOpacity: 0.5,
-          children: [
-            SpeedDialChild(
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(15)),
+        floatingActionButton: kDebugMode
+          ? SpeedDial(
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(15))),
+            spacing: 5,
+            animatedIcon: AnimatedIcons.menu_close,
+            animatedIconTheme: const IconThemeData(size: 22.0),
+            foregroundColor: Colors.white,
+            curve: Curves.bounceIn,
+            overlayColor: Colors.black,
+            overlayOpacity: 0.5,
+            children: [
+              SpeedDialChild(
+                child: const Icon(Icons.add),
+                onTap: () => showAddDialog(),
               ),
-              backgroundColor: Colors.purple,
-              foregroundColor: Colors.white,
-              child: const Icon(Icons.add),
-              onTap: () => showAddDialog(),
-            ),
-            if (kDebugMode)
               SpeedDialChild(
                 child: const Icon(Icons.remove),
                 onTap: () async => await cubit.deleteDatabase(),
               ),
-          ],
-        ));
+              SpeedDialChild(
+                child: const Icon(Icons.bug_report),
+                onTap: () async => await cubit.addSupalist('Debug List ${DateTime.now().millisecondsSinceEpoch}'),
+              ),
+            ],
+          )
+          : FloatingActionButton(
+            onPressed: () => showAddDialog(),
+            tooltip: 'Add Supalist',
+            foregroundColor: Colors.white,
+            child: const Icon(Icons.add),
+          ),
+        );
   }
 }
