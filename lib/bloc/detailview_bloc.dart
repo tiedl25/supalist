@@ -11,7 +11,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
   Future<void> loadItems() async {
     final state = DetailViewLoaded.fromLoading(
-      this.state as DetailViewLoading,
+      this.state,
     );
 
     state.supalist.items = await DatabaseHelper.instance.getItems(state.supalist.id!);

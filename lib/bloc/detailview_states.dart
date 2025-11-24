@@ -19,7 +19,7 @@ class DetailViewLoaded extends DetailViewState {
         supalist: supalist ?? this.supalist, addTile: addTile ?? this.addTile);
   }
 
-  factory DetailViewLoaded.fromLoading(DetailViewLoading loading, {bool addTile = false}) {
-    return DetailViewLoaded(supalist: loading.supalist, addTile: addTile);
+  factory DetailViewLoaded.fromLoading(state, {bool addTile = false}) {
+    return DetailViewLoaded(supalist: state.supalist, addTile: addTile);
   }
 }
