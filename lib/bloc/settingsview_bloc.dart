@@ -1,5 +1,5 @@
 import 'dart:ui';
-
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:bloc/bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supalist/bloc/settingsview_states.dart';
@@ -17,7 +17,10 @@ class SettingsViewCubit extends Cubit<SettingsViewState> {
     final isSystemTheme = prefs.getBool('systemTheme') ?? true;
     final isDarkMode = prefs.getBool('darkMode') ?? false;
 
-    emit(SettingsViewLoaded(systemTheme: isSystemTheme, darkMode: isDarkMode));
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    final version = packageInfo.version;
+
+    emit(SettingsViewLoaded(systemTheme: isSystemTheme, darkMode: isDarkMode, version: version));
   }
 
   Future<void> toggleSystemTheme(bool value, Brightness platformBrightness) async {
