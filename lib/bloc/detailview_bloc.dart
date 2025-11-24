@@ -25,7 +25,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     emit(state.copy(addTile: !state.addTile));
   }
 
-  void addItem(String title) async {
+  void addItem(String title, bool keepAdding) async {
     final state = this.state as DetailViewLoaded;
 
     if (title.isEmpty) return;
@@ -38,7 +38,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     state.supalist.items.add(newItem);
     newItem.id = await DatabaseHelper.instance.addItem(newItem, state.supalist.id!);
 
-    emit(state.copy(addTile: false));
+    emit(state.copy(addTile: keepAdding));
   }
 
   void removeItem(int itemId) async {

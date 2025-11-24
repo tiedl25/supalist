@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:supalist/models/supalist.dart';
 
 abstract class DetailViewState {
@@ -10,6 +11,7 @@ class DetailViewLoading extends DetailViewState {
 }
 
 class DetailViewLoaded extends DetailViewState {
+  final TextEditingController textController = TextEditingController();
   bool addTile;
 
   DetailViewLoaded({required super.supalist, this.addTile = false});
