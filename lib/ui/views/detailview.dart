@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:supalist/bloc/detailview_bloc.dart';
 import 'package:supalist/bloc/detailview_states.dart';
 import 'package:supalist/ui/widgets/ui_model.dart';
@@ -9,23 +10,6 @@ class DetailView extends StatelessWidget {
   late final BuildContext context;
   late final DetailViewCubit cubit;
 
-  Future<bool> showDismissDialog(int itemId) async {
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return DialogModel(
-          title: 'Confirm Dismiss',
-          content: const Text(
-            'Do you really want to remove this Item',
-            style: TextStyle(fontSize: 20),
-          ),
-          onConfirmed: () => cubit.removeItem(itemId),
-        );
-      },
-    );
-    return confirmed ?? false;
-  }
-
   Widget dismissibleTile(Item item) {
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
@@ -33,16 +17,21 @@ class DetailView extends StatelessWidget {
         borderRadius: BorderRadius.all(Radius.circular(15)),
         color: Colors.red,
       ),
-      child: Dismissible(
-        key: UniqueKey(),
-        direction: DismissDirection.endToStart,
-        confirmDismiss: (direction) => showDismissDialog(item.id!),
-        background: Container(
-          padding: const EdgeInsets.only(right: 20),
-          alignment: Alignment.centerRight,
-          child: const Icon(
-            Icons.delete,
-          ),
+      clipBehavior: Clip.hardEdge,
+      child: Slidable(
+        key: ValueKey(item.id),
+        endActionPane: ActionPane(
+          motion: const DrawerMotion(),
+          extentRatio: 0.25,
+          children: [
+            SlidableAction(
+              onPressed: (_) => cubit.removeItem(item.id!),
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              icon: Icons.delete,
+              label: 'Delete',
+            ),
+          ],
         ),
         child: Container(
           decoration: BoxDecoration(

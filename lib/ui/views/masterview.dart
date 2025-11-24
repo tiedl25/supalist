@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:supalist/bloc/masterview_bloc.dart';
 import 'package:supalist/bloc/masterview_states.dart';
 import 'package:supalist/ui/dialogs/itemdialog.dart';
 import 'package:supalist/models/supalist.dart';
-import 'package:supalist/ui/widgets/ui_model.dart';
 
 class MasterView extends StatelessWidget {
   late final MasterViewCubit cubit;
@@ -73,35 +73,21 @@ class MasterView extends StatelessWidget {
         color: Colors.red,
         borderRadius: BorderRadius.all(Radius.circular(15)),
       ),
-      child: Dismissible(
-        key: UniqueKey(),
-        direction: DismissDirection.endToStart,
-        onDismissed: (_) async => await cubit.removeSupalist(supalist.id!),
-        confirmDismiss: (direction) {
-          return showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return StatefulBuilder(builder: (context, setState) {
-                return DialogModel(
-                    title: 'Confirm Dismiss',
-                    content: Container(
-                      padding: const EdgeInsets.all(5),
-                      child: const Text(
-                        'Do you really want to remove this Item',
-                        style: TextStyle(fontSize: 20),
-                      ),
-                    ),
-                    onConfirmed: () {});
-              });
-            },
-          );
-        },
-        background: Container(
-          padding: const EdgeInsets.only(right: 20),
-          alignment: Alignment.centerRight,
-          child: const Icon(
-            Icons.delete,
-          ),
+      clipBehavior: Clip.hardEdge,
+      child: Slidable(
+        key: ValueKey(supalist.id),
+        endActionPane: ActionPane(
+          motion: const DrawerMotion(),
+          extentRatio: 0.25,
+          children: [
+            SlidableAction(
+              onPressed: (_) => cubit.removeSupalist(supalist.id!),
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              icon: Icons.delete,
+              label: 'Delete',
+            ),
+          ],
         ),
         child: tile(supalist),
       ),
