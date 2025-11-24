@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:supalist/bloc/detailview_bloc.dart';
 import 'package:supalist/bloc/detailview_states.dart';
+import 'package:supalist/resources/values.dart';
 import 'package:supalist/ui/widgets/ui_model.dart';
 import 'package:supalist/models/item.dart';
 
@@ -14,7 +15,7 @@ class DetailView extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
       decoration: const BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(15)),
+        borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
         color: Colors.red,
       ),
       clipBehavior: Clip.hardEdge,
@@ -36,13 +37,13 @@ class DetailView extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
-            borderRadius: const BorderRadius.all(Radius.circular(15))),
+            borderRadius: const BorderRadius.all(Radius.circular(Values.borderRadius))),
           child: CheckboxListTile(
             checkboxShape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(5))),
             value: item.checked,
             contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
             shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(15)),
+              borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
             ),
             tileColor: Theme.of(context).colorScheme.surface,
             title: Text(item.name),

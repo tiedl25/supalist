@@ -5,6 +5,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:supalist/bloc/masterview_bloc.dart';
 import 'package:supalist/bloc/masterview_states.dart';
+import 'package:supalist/resources/values.dart';
 import 'package:supalist/ui/dialogs/itemdialog.dart';
 import 'package:supalist/models/supalist.dart';
 
@@ -71,7 +72,7 @@ class MasterView extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 5),
       decoration: const BoxDecoration(
         color: Colors.red,
-        borderRadius: BorderRadius.all(Radius.circular(15)),
+        borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
       ),
       clipBehavior: Clip.hardEdge,
       child: Slidable(
@@ -100,12 +101,12 @@ class MasterView extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: Border.all(style: BorderStyle.none),
-        borderRadius: const BorderRadius.all(Radius.circular(15)),
+        borderRadius: const BorderRadius.all(Radius.circular(Values.borderRadius)),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(15)),
+          borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
         ),
         tileColor: Theme.of(context).colorScheme.surface,
         title: Text(
@@ -137,7 +138,7 @@ class MasterView extends StatelessWidget {
         floatingActionButton: kDebugMode
           ? SpeedDial(
             shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(15))),
+                borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius))),
             spacing: 5,
             animatedIcon: AnimatedIcons.menu_close,
             animatedIconTheme: const IconThemeData(size: 22.0),

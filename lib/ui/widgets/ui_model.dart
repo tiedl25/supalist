@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:supalist/resources/values.dart';
 
 class DialogModel extends StatelessWidget {
   final String? title;
@@ -38,7 +39,7 @@ class DialogModel extends StatelessWidget {
           contentPadding: contentPadding,
           scrollable: scrollable,
           title: title != null ? Text(title!) : null,
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius))),
           backgroundColor: Theme.of(context).colorScheme.background,
           content: content,
           actions: onConfirmed != null ? [
@@ -105,15 +106,15 @@ class TfDecorationModel extends InputDecoration {
       fillColor: Theme.of(context).colorScheme.surface,
       filled: true,
       enabledBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(15)),
+          borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
           borderSide: BorderSide(style: BorderStyle.none)
       ),
       focusedBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(15)),
+          borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
           borderSide: BorderSide(color: Colors.blue)
       ),
       errorBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(15)),
+          borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
           borderSide: BorderSide(color: Colors.red)
       )
   );
@@ -136,7 +137,7 @@ class PillModel extends StatelessWidget{
       decoration: BoxDecoration(
         color: color,
         border: Border.all(style: BorderStyle.none, width: 0),
-        borderRadius: const BorderRadius.all(Radius.circular(20)),
+        borderRadius: const BorderRadius.all(Radius.circular(Values.borderRadius)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 5),
       margin: const EdgeInsets.all(2),

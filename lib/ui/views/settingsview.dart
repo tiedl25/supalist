@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supalist/bloc/settingsview_bloc.dart';
 import 'package:supalist/bloc/settingsview_states.dart';
+import 'package:supalist/resources/values.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class SettingsView extends StatelessWidget {
@@ -91,7 +92,7 @@ class SettingsView extends StatelessWidget {
         border: Border.all(
           style: BorderStyle.none,
         ),
-        borderRadius: BorderRadius.circular(20)),
+        borderRadius: BorderRadius.circular(Values.borderRadius)),
       child: Column(
         children: [
           SwitchListTile(
@@ -126,7 +127,7 @@ class SettingsView extends StatelessWidget {
         border: Border.all(
           style: BorderStyle.none,
         ),
-        borderRadius: BorderRadius.circular(20)),
+        borderRadius: BorderRadius.circular(Values.borderRadius)),
       child: Column(
         children: [
           ListTile(
@@ -157,7 +158,7 @@ class SettingsView extends StatelessWidget {
           border: Border.all(
             style: BorderStyle.none,
           ),
-          borderRadius: BorderRadius.circular(20)),
+          borderRadius: BorderRadius.circular(Values.borderRadius)),
       child: Column(
         children: [
           ListTile(
