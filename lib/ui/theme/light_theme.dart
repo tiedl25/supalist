@@ -8,17 +8,12 @@ ThemeData lightTheme = ThemeData(
       elevation: 0
   ),
   colorScheme: const ColorScheme.light(
-    background: Color(0xFFEFEFEF),
-    surface: Color(0xFFDADADA),
-    surfaceTint: Colors.deepPurpleAccent
-  ),
+      surface: Color.fromARGB(255, 238, 236, 245),
+      surfaceContainer: Color.fromARGB(255, 227, 224, 236),
+      surfaceTint: Colors.deepPurpleAccent),
   dividerColor: Colors.black,
   textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-          foregroundColor: Colors.black,
-      )
-  ),
-  textTheme: const TextTheme(
-      labelLarge: TextStyle(color: Colors.deepPurpleAccent)
-  )
+    foregroundColor: Colors.black,
+  )),
 );
