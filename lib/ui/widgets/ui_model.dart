@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:supalist/resources/strings.dart';
 import 'package:supalist/resources/values.dart';
 
 class DialogModel extends StatelessWidget {
@@ -20,8 +21,8 @@ class DialogModel extends StatelessWidget {
     this.title,
     required this.content,
     this.onConfirmed,
-    this.leftText='Cancel',
-    this.rightText='OK',
+    this.leftText=Strings.cancelText,
+    this.rightText=Strings.okText,
     this.insetPadding=const EdgeInsets.all(15),
     this.contentPadding=const EdgeInsets.all(20),
     this.alignment=Alignment.bottomCenter,

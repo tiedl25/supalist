@@ -5,6 +5,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:supalist/bloc/masterview_bloc.dart';
 import 'package:supalist/bloc/masterview_states.dart';
+import 'package:supalist/resources/strings.dart';
 import 'package:supalist/resources/values.dart';
 import 'package:supalist/ui/dialogs/itemdialog.dart';
 import 'package:supalist/models/supalist.dart';
@@ -48,7 +49,7 @@ class MasterView extends StatelessWidget {
                     children: const [
                       Center(
                         child: Text(
-                          'No items in list',
+                          Strings.noItemsInListText,
                           style: TextStyle(fontSize: 20),
                         ),
                       )
@@ -86,7 +87,7 @@ class MasterView extends StatelessWidget {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
               icon: Icons.delete,
-              label: 'Delete',
+              label: Strings.deleteText,
             ),
           ],
         ),
@@ -126,7 +127,7 @@ class MasterView extends StatelessWidget {
     return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.background,
         appBar: AppBar(
-          title: const Text('Supalist'),
+          title: const Text(Strings.appName),
           actions: [
             IconButton(
               onPressed: () => Navigator.pushNamed(context, '/settings'), 
@@ -163,7 +164,7 @@ class MasterView extends StatelessWidget {
           )
           : FloatingActionButton(
             onPressed: () => showAddDialog(),
-            tooltip: 'Add Supalist',
+            tooltip: Strings.addSupalistText,
             foregroundColor: Colors.white,
             child: const Icon(Icons.add),
           ),

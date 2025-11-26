@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supalist/bloc/masterview_bloc.dart';
+import 'package:supalist/resources/strings.dart';
 import 'package:supalist/ui/widgets/ui_model.dart';
 
 class ItemDialog extends StatelessWidget {
@@ -10,7 +11,7 @@ class ItemDialog extends StatelessWidget {
     final TextEditingController controller = TextEditingController();
 
     return DialogModel(
-      title: 'Add a new list',
+      title: Strings.addSupalistText,
       content: SizedBox(
         width: MediaQuery.of(context).size.width,
         child: Container(
@@ -20,7 +21,7 @@ class ItemDialog extends StatelessWidget {
             autofocus: true,
             decoration: TfDecorationModel(
                 context: context,
-                title: 'Name',
+                title: Strings.nameText,
             ),
           ),
         )

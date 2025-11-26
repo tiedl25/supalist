@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supalist/bloc/settingsview_bloc.dart';
 import 'package:supalist/bloc/settingsview_states.dart';
+import 'package:supalist/resources/strings.dart';
 import 'package:supalist/resources/values.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -19,7 +20,7 @@ class SettingsView extends StatelessWidget {
           return Scaffold(
             backgroundColor: Theme.of(context).colorScheme.surface,
             appBar: AppBar(
-              title: Text('Privacy Policy'),
+              title: Text(Strings.privacyPolicyText),
             ),
             body: WebViewWidget(
                 gestureRecognizers: Set()
@@ -43,7 +44,7 @@ class SettingsView extends StatelessWidget {
           return Scaffold(
             backgroundColor: Theme.of(context).colorScheme.surface,
             appBar: AppBar(
-              title: Text('Buy Me A Coffee'),
+              title: Text(Strings.buyMeACoffeeText),
             ),
             body: WebViewWidget(
                 gestureRecognizers: Set()
@@ -67,7 +68,7 @@ class SettingsView extends StatelessWidget {
           return Scaffold(
             backgroundColor: Theme.of(context).colorScheme.surface,
             appBar: AppBar(
-              title: Text('Paypal'),
+              title: Text(Strings.paypalText),
             ),
             body: WebViewWidget(
                 gestureRecognizers: Set()
@@ -96,7 +97,7 @@ class SettingsView extends StatelessWidget {
       child: Column(
         children: [
           SwitchListTile(
-            title: const Text("Use system theme"),
+            title: const Text(Strings.systemThemeText),
             value: state.systemTheme,
             onChanged: (bool value) async => cubit.toggleSystemTheme(value, MediaQuery.of(context).platformBrightness)),
           const Divider(
@@ -105,7 +106,7 @@ class SettingsView extends StatelessWidget {
             endIndent: 15,
           ),
           SwitchListTile(
-              title: const Text("Dark Mode"),
+              title: const Text(Strings.darkModeText),
               value: state.darkMode,
               tileColor: state.systemTheme
                 ? Theme.of(context).colorScheme.surface
@@ -131,7 +132,7 @@ class SettingsView extends StatelessWidget {
       child: Column(
         children: [
           ListTile(
-            title: Text("Version"),
+            title: Text(Strings.versionText),
             subtitle: Text(version),
           ),
           const Divider(
@@ -140,7 +141,7 @@ class SettingsView extends StatelessWidget {
             endIndent: 15,
           ),
           ListTile(
-            title: Text("Privacy Policy"),
+            title: Text(Strings.privacyPolicyText),
             trailing: Icon(Icons.open_in_browser),
             onTap: () => showPrivacyPolicy(),
           ),
@@ -162,7 +163,7 @@ class SettingsView extends StatelessWidget {
       child: Column(
         children: [
           ListTile(
-            title: Text('Buy me a coffee'),
+            title: Text(Strings.buyMeACoffeeText),
             trailing: Icon(Icons.coffee),
             onTap: () => showBuyMeACoffee(),
           ),
@@ -172,7 +173,7 @@ class SettingsView extends StatelessWidget {
             endIndent: 15,
           ),
           ListTile(
-            title: Text('Let Elon bring me money'),
+            title: Text(Strings.letElonBringMeMoneyText),
             trailing: Icon(Icons.paypal),
             onTap: () => showPaypal(),
           )
@@ -189,7 +190,7 @@ class SettingsView extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: const Text(Strings.settingsText),
       ),
       body: BlocBuilder<SettingsViewCubit, SettingsViewState>(
           builder: (context, state) {
