@@ -48,6 +48,7 @@ dependencies:
   flutter_slidable: any
   webview_flutter: any
   package_info_plus: any
+  in_app_update: 
 
 dev_dependencies:
   flutter_test:

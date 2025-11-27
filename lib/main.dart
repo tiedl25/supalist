@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:in_app_update/in_app_update.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supalist/bloc/detailview_bloc.dart';
 import 'package:supalist/bloc/masterview_bloc.dart';
@@ -11,10 +13,38 @@ import 'package:supalist/ui/theme/dark_theme.dart';
 import 'package:supalist/ui/theme/light_theme.dart';
 import 'package:supalist/ui/views/settingsview.dart';
 
+void updateCheck() {
+  if (!kDebugMode) {
+    InAppUpdate.checkForUpdate().then((updateInfo) {
+      if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+          if (updateInfo.immediateUpdateAllowed) {
+              // Perform immediate update
+              InAppUpdate.performImmediateUpdate().then((appUpdateResult) {
+                  if (appUpdateResult == AppUpdateResult.success) {
+                    //App Update successful
+                  }
+              });
+          } else if (updateInfo.flexibleUpdateAllowed) {
+            //Perform flexible update
+            InAppUpdate.startFlexibleUpdate().then((appUpdateResult) {
+                  if (appUpdateResult == AppUpdateResult.success) {
+                    //App Update successful
+                    InAppUpdate.completeFlexibleUpdate();
+                  }
+              });
+          }
+      }
+    });
+  }
+  
+}
+
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final prefs = await SharedPreferences.getInstance();
+
+  updateCheck();
 
   runApp(MyApp(prefs: prefs));
 }
