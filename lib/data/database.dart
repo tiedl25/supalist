@@ -23,8 +23,9 @@ class DatabaseHelper {
     String path = join(documentsDirectory.path, 'supalist.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -43,7 +44,8 @@ class DatabaseHelper {
         id INTEGER PRIMARY KEY,
         name TEXT,
         timestamp TEXT,
-        checked INTEGER,
+        checked INTEGER DEFAULT 0,
+        history INTEGER DEFAULT 0,
         
         listId INTEGER,
         FOREIGN KEY (listId) REFERENCES lists (id)
@@ -69,6 +71,25 @@ class DatabaseHelper {
         addItem(item, listId);
       }
       return listId;
+    });
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    await lock.synchronized(() async {
+      if (oldVersion < 2) {
+        // Add 'history' column to 'items' table
+        await db.execute('ALTER TABLE items ADD COLUMN history BOOLEAN DEFAULT 0');
+        // Migrate existing data if necessary
+        var items = await db.query('items');
+        for (var item in items) {
+          await db.update(
+            'items',
+            {'history': 0},
+            where: 'id = ?',
+            whereArgs: [item['id']],
+          );
+        }
+      }
     });
   }
 
