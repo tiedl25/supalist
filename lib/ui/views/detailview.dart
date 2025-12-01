@@ -65,6 +65,8 @@ class DetailView extends StatelessWidget {
             }
             state as DetailViewLoaded;
 
+            final items = state.supalist.items.where((item) => item.history == false).toList();
+
             return RefreshIndicator(
               child: state.supalist.items.isEmpty && !state.addTile
                   ? ListView(
@@ -82,27 +84,13 @@ class DetailView extends StatelessWidget {
                       ],
                     )
                   : ListView.builder(
-                      physics: const BouncingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics()),
+                      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                       padding: const EdgeInsets.all(16),
-                      itemCount:
-                          state.supalist.items.length + (state.addTile ? 1 : 0),
+                      itemCount: items.length + (state.addTile ? 1 : 0),
                       itemBuilder: (context, i) {
-                        return i == state.supalist.items.length
-                            ? Container(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 2),
-                                child: TextField(
-                                  controller: state.textController,
-                                  autofocus: true,
-                                  onSubmitted: (value) => cubit.addItem(value, false),
-                                  decoration: TfDecorationModel(
-                                    context: context,
-                                    title: Strings.addItemText,
-                                  ),
-                                ),
-                              )
-                            : dismissibleTile(state.supalist.items[i]);
+                        return i == items.length
+                            ? ItemSuggestion(items: state.supalist.items.where((item) => item.history == true).map((e) => e.name).toSet().toList(), textController: state.textController, cubit: cubit)
+                            : dismissibleTile(items[i]);
                       }),
               onRefresh: () async => await cubit.loadItems(),
             );
@@ -144,6 +132,81 @@ class DetailView extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+class ItemSuggestion extends StatelessWidget {
+  const ItemSuggestion({
+    super.key,
+    required this.items,
+    required this.textController,
+    required this.cubit,
+  });
+
+  final List<String> items;
+  final TextEditingController textController;
+  final DetailViewCubit cubit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Autocomplete(
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text == '') {
+          return const Iterable<String>.empty();
+        }
+        return items.where((String option) {
+          return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+        });
+      },
+      textEditingController: textController,
+      focusNode: FocusNode(),
+      fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+        return TextField(
+          autofocus: true,
+          focusNode: focusNode,
+          controller: textEditingController,
+          decoration: TfDecorationModel(
+            context: context,
+            title: Strings.addItemText,
+          ),
+          onSubmitted: (_) => cubit.addItem(textController.text, false),
+        );
+      },
+      optionsViewBuilder: (context, onSelected, options) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 5),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(20.0),
+            ),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: 200.0,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: options.map<Widget>((option) {
+                    return ListTile(
+                      contentPadding: const EdgeInsets.only(left: 20, right: 15),
+                      title: Text(option),
+                      onTap: () => onSelected(option),
+                      trailing: IconButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => cubit.deleteItem(option), 
+                        icon: const Icon(Icons.delete),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+          ),)
+        );
+      },
+      onSelected: (String selection) => cubit.addItem(selection, false),
     );
   }
 }

@@ -3,14 +3,16 @@ class Item{
   String name;
   late DateTime timestamp;
   bool checked;
+  bool history;
 
-  Item({this.id, required this.name, timestamp, this.checked = false}) : timestamp = timestamp ?? DateTime.now();
+  Item({this.id, required this.name, timestamp, this.checked = false, this.history = false}) : timestamp = timestamp ?? DateTime.now();
 
   Map<String, dynamic> toMap() => {
     'name': name,
     'id': id,
     'timestamp': timestamp.toString(),
-    'checked': checked ? 1 : 0
+    'checked': checked ? 1 : 0,
+    'history': history ? 1 : 0,
   };
 
   factory Item.fromMap(Map<String, dynamic> map) {
@@ -18,7 +20,8 @@ class Item{
       name: map['name'],
       id: map['id'],
       timestamp: DateTime.parse(map['timestamp']),
-      checked: map['checked'] == 1 ? true : false
+      checked: map['checked'] == 1 ? true : false,
+      history: map['history'] == 1 ? true : false,
     );
   }
 }

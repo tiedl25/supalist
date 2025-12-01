@@ -30,13 +30,24 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
     if (title.isEmpty) return;
 
-    final newItem = Item(
-      name: title,
-      checked: false,
+    final itemExists = state.supalist.items.where(
+      (item) => item.name == title,
     );
 
-    state.supalist.items.add(newItem);
-    newItem.id = await DatabaseHelper.instance.addItem(newItem, state.supalist.id!);
+    if (itemExists.isNotEmpty) {
+      final existingItem = itemExists.first;
+      existingItem.history = false;
+      existingItem.checked = false;
+      await DatabaseHelper.instance.updateItem(existingItem);
+    } else {
+      final newItem = Item(
+        name: title,
+        checked: false,
+      );
+
+      state.supalist.items.add(newItem);
+      newItem.id = await DatabaseHelper.instance.addItem(newItem, state.supalist.id!);
+    }
 
     emit(state.copy(addTile: keepAdding));
   }
@@ -44,9 +55,19 @@ class DetailViewCubit extends Cubit<DetailViewState> {
   void removeItem(int itemId) async {
     final state = this.state as DetailViewLoaded;
 
-    state.supalist.items.removeWhere((element) => element.id == itemId);
-    await DatabaseHelper.instance.removeItem(itemId);
+    final item = state.supalist.items.firstWhere((element) => element.id == itemId);
+    item.history = true;
+    await DatabaseHelper.instance.updateItem(item);
 
+    emit(state.copy());
+  }
+
+  void deleteItem(String itemName) async {
+    final state = this.state as DetailViewLoaded;
+
+    final item = state.supalist.items.firstWhere((element) => element.name == itemName);
+    state.supalist.items.remove(item);
+    await DatabaseHelper.instance.removeItem(item.id!);
     emit(state.copy());
   }
 
