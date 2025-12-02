@@ -89,7 +89,7 @@ class DetailView extends StatelessWidget {
                       itemCount: items.length + (state.addTile ? 1 : 0),
                       itemBuilder: (context, i) {
                         return i == items.length
-                            ? ItemSuggestion(items: state.supalist.items.where((item) => item.history == true).map((e) => e.name).toSet().toList(), textController: state.textController, cubit: cubit)
+                            ? ItemSuggestion(cubit: cubit)
                             : dismissibleTile(items[i]);
                       }),
               onRefresh: () async => await cubit.loadItems(),
@@ -139,74 +139,74 @@ class DetailView extends StatelessWidget {
 class ItemSuggestion extends StatelessWidget {
   const ItemSuggestion({
     super.key,
-    required this.items,
-    required this.textController,
     required this.cubit,
   });
 
-  final List<String> items;
-  final TextEditingController textController;
   final DetailViewCubit cubit;
 
   @override
   Widget build(BuildContext context) {
-    return Autocomplete(
-      optionsBuilder: (TextEditingValue textEditingValue) {
-        if (textEditingValue.text == '') {
-          return const Iterable<String>.empty();
-        }
-        return items.where((String option) {
-          return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
-        });
-      },
-      textEditingController: textController,
-      focusNode: FocusNode(),
-      fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
-        return TextField(
-          autofocus: true,
-          focusNode: focusNode,
-          controller: textEditingController,
-          decoration: TfDecorationModel(
-            context: context,
-            title: Strings.addItemText,
-          ),
-          onSubmitted: (_) => cubit.addItem(textController.text, false),
-        );
-      },
-      optionsViewBuilder: (context, onSelected, options) {
-        return Align(
-          alignment: Alignment.topLeft,
-          child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 5),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(20.0),
+    return BlocBuilder<DetailViewCubit, DetailViewState>(
+      builder: (context, state) {
+        state as DetailViewLoaded;
+
+        return Autocomplete(
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            if (textEditingValue.text == '') {
+              return const Iterable<String>.empty();
+            }
+            
+            return state.supalist.items.where((Item item) => item.history == true && item.name.toLowerCase().contains(textEditingValue.text.toLowerCase())).map((e) => e.name);
+        },
+        textEditingController: state.textController,
+        focusNode: FocusNode(),
+        fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+          return TextField(
+            autofocus: true,
+            focusNode: focusNode,
+            controller: textEditingController,
+            decoration: TfDecorationModel(
+              context: context,
+              title: Strings.addItemText,
             ),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: 200.0,
+            onSubmitted: (_) => cubit.addItem(state.textController.text, false),
+          );
+        },
+        optionsViewBuilder: (context, onSelected, options) {
+          return Align(
+            alignment: Alignment.topLeft,
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 5),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(20.0),
               ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: options.map<Widget>((option) {
-                    return ListTile(
-                      contentPadding: const EdgeInsets.only(left: 20, right: 15),
-                      title: Text(option),
-                      onTap: () => onSelected(option),
-                      trailing: IconButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () => cubit.deleteItem(option), 
-                        icon: const Icon(Icons.delete),
-                      ),
-                    );
-                  }).toList(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: 200.0,
                 ),
-              ),
-          ),)
-        );
-      },
-      onSelected: (String selection) => cubit.addItem(selection, false),
-    );
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: options.map<Widget>((option) {
+                      return ListTile(
+                        contentPadding: const EdgeInsets.only(left: 20, right: 15),
+                        title: Text(option),
+                        onTap: () => onSelected(option),
+                        trailing: IconButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () => cubit.deleteItem(option), 
+                          icon: const Icon(Icons.delete),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+            ),)
+          );
+        },
+        onSelected: (String selection) => cubit.addItem(selection, false),
+      );
+    }); 
   }
 }
