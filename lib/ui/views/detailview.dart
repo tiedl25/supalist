@@ -122,13 +122,32 @@ class DetailView extends StatelessWidget {
       body: body(),
       floatingActionButton: BlocBuilder<DetailViewCubit, DetailViewState>(
         builder: (context, state) {
-          return FloatingActionButton(
-            onPressed: () => state is DetailViewLoading
-                ? null
-                : (state as DetailViewLoaded).addTile ? cubit.addItem(state.textController.text, true) : cubit.addTileToggle(),
-            tooltip: Strings.addItemText,
-            foregroundColor: Colors.white,
-            child: const Icon(Icons.add),
+          return Align(
+            alignment: Alignment.bottomRight,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (state is DetailViewLoaded && state.addTile)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: FloatingActionButton(
+                      onPressed: () => cubit.addTileToggle(),
+                      tooltip: Strings.removeItemTile,
+                      backgroundColor: const Color.fromARGB(255, 240, 73, 106),
+                      foregroundColor: Colors.white,
+                      child: const Icon(Icons.remove),
+                    ),
+                  ),
+                FloatingActionButton(
+                  onPressed: () => state is DetailViewLoading
+                      ? null
+                      : (state as DetailViewLoaded).addTile ? cubit.addItem(state.textController.text, true) : cubit.addTileToggle(),
+                  tooltip: Strings.addItemText,
+                  foregroundColor: Colors.white,
+                  child: const Icon(Icons.add),
+                ),
+              ],
+            ),
           );
         },
       ),
