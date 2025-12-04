@@ -49,7 +49,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
       newItem.id = await DatabaseHelper.instance.addItem(newItem, state.supalist.id!);
     }
 
-    emit(state.copy(addTile: keepAdding));
+    emit(state.copy(addTile: keepAdding)..textController.clear());
   }
 
   void removeItem(int itemId) async {
