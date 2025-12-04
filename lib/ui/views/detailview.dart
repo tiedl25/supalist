@@ -92,6 +92,7 @@ class DetailView extends StatelessWidget {
                         tooltip: Strings.removeItemTile,
                         backgroundColor: const Color.fromARGB(255, 240, 73, 106),
                         foregroundColor: Colors.white,
+                        heroTag: "btn1",
                         child: const Icon(Icons.remove),
                       )
                     : FloatingActionButton(
@@ -99,6 +100,7 @@ class DetailView extends StatelessWidget {
                         tooltip: Strings.clearCheckedItems,
                         backgroundColor: const Color.fromARGB(255, 72, 220, 139),
                         foregroundColor: Colors.white,
+                        heroTag: "btn1",
                         child: const Icon(Icons.clear_all),
                     ),
                   ),
@@ -108,6 +110,7 @@ class DetailView extends StatelessWidget {
                       : (state as DetailViewLoaded).addTile ? cubit.addItem(state.textController.text, true) : cubit.addTileToggle(),
                   tooltip: Strings.addItemText,
                   foregroundColor: Colors.white,
+                  heroTag: "btn2",
                   child: const Icon(Icons.add),
                 ),
               ],
