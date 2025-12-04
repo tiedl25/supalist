@@ -5,6 +5,7 @@ class Strings {
   static const String noItemsInListText = "No items in list";
   static const String addItemText = "Add Item";
   static const String removeItemTile = "Remove Item Tile";
+  static const String clearCheckedItems = "Clear Checked Items";
   static const String versionText = "Version";
   static const String privacyPolicyText = "Privacy Policy";
   static const String buyMeACoffeeText = "Buy Me A Coffee";

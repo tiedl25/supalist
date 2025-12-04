@@ -127,15 +127,22 @@ class DetailView extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (state is DetailViewLoaded && state.addTile)
+                if (state is DetailViewLoaded)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
-                    child: FloatingActionButton(
-                      onPressed: () => cubit.addTileToggle(),
-                      tooltip: Strings.removeItemTile,
-                      backgroundColor: const Color.fromARGB(255, 240, 73, 106),
-                      foregroundColor: Colors.white,
-                      child: const Icon(Icons.remove),
+                    child: state.addTile ? FloatingActionButton(
+                        onPressed: () => cubit.addTileToggle(),
+                        tooltip: Strings.removeItemTile,
+                        backgroundColor: const Color.fromARGB(255, 240, 73, 106),
+                        foregroundColor: Colors.white,
+                        child: const Icon(Icons.remove),
+                      )
+                    : FloatingActionButton(
+                        onPressed: () => cubit.clearCheckedItems(),
+                        tooltip: Strings.clearCheckedItems,
+                        backgroundColor: const Color.fromARGB(255, 72, 220, 139),
+                        foregroundColor: Colors.white,
+                        child: const Icon(Icons.clear_all),
                     ),
                   ),
                 FloatingActionButton(

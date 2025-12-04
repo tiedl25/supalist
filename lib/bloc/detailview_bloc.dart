@@ -79,4 +79,18 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
     emit(state.copy());
   }
+
+  void clearCheckedItems() async {
+    final state = this.state as DetailViewLoaded;
+
+    final checkedItems = state.supalist.items.where((item) => item.checked).toList();
+
+    for (var item in checkedItems) {
+      item.history = true;
+      item.checked = false;
+      await DatabaseHelper.instance.updateItem(item);
+    }
+
+    emit(state.copy());
+  }
 }
