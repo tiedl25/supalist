@@ -15,8 +15,13 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     );
 
     state.supalist.items = await DatabaseHelper.instance.getItems(state.supalist.id!);
+    sortItems();
 
     emit(state);
+  }
+
+  void sortItems() {
+    state.supalist.items.sort((a, b) => a.checked.toString().compareTo(b.checked.toString()));
   }
 
   void addTileToggle() {
@@ -75,7 +80,11 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     final state = this.state as DetailViewLoaded;
 
     item.checked = !item.checked;
+    emit(state.copy());
+
     await DatabaseHelper.instance.updateItem(item);
+    await Future.delayed(const Duration(milliseconds: 300));
+    sortItems();
 
     emit(state.copy());
   }
