@@ -12,49 +12,6 @@ class DetailView extends StatelessWidget {
   late final BuildContext context;
   late final DetailViewCubit cubit;
 
-  Widget dismissibleTile(Item item) {
-    return Container(
-        margin: const EdgeInsets.only(bottom: 5),
-        decoration: const BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
-          color: Colors.red,
-        ),
-        clipBehavior: Clip.hardEdge,
-        child: Slidable(
-          key: ValueKey(item.id),
-          endActionPane: ActionPane(
-            motion: const DrawerMotion(),
-            extentRatio: 0.25,
-            children: [
-              SlidableAction(
-                onPressed: (_) => cubit.removeItem(item.id!),
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                icon: Icons.delete,
-                label: Strings.deleteText,
-              ),
-            ],
-          ),
-          child: Container(
-              decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: const BorderRadius.all(
-                      Radius.circular(Values.borderRadius))),
-              child: CheckboxListTile(
-                checkboxShape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(5))),
-                value: item.checked,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
-                ),
-                tileColor: Theme.of(context).colorScheme.surface,
-                title: Text(item.name),
-                onChanged: (value) => cubit.toggleItemChecked(item),
-              )),
-        ));
-  }
-
   Widget body() {
     return Center(
       child: BlocBuilder<DetailViewCubit, DetailViewState>(
@@ -90,7 +47,7 @@ class DetailView extends StatelessWidget {
                       itemBuilder: (context, i) {
                         return i == items.length
                             ? ItemSuggestion(cubit: cubit)
-                            : dismissibleTile(items[i]);
+                            : DismissibleItem(cubit: cubit, context: context, item: items[i]);
                       }),
               onRefresh: () async => await cubit.loadItems(),
             );
@@ -159,6 +116,63 @@ class DetailView extends StatelessWidget {
         },
       ),
     );
+  }
+}
+
+class DismissibleItem extends StatelessWidget {
+  const DismissibleItem({
+    super.key,
+    required this.cubit,
+    required this.context,
+    required this.item,
+  });
+
+  final DetailViewCubit cubit;
+  final BuildContext context;
+  final Item item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        margin: const EdgeInsets.only(bottom: 5),
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
+          color: Colors.red,
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: Slidable(
+          key: ValueKey(item.id),
+          endActionPane: ActionPane(
+            motion: const DrawerMotion(),
+            extentRatio: 0.25,
+            children: [
+              SlidableAction(
+                onPressed: (_) => cubit.removeItem(item.id!),
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: Strings.deleteText,
+              ),
+            ],
+          ),
+          child: Container(
+              decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: const BorderRadius.all(
+                      Radius.circular(Values.borderRadius))),
+              child: CheckboxListTile(
+                checkboxShape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(5))),
+                value: item.checked,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
+                ),
+                tileColor: Theme.of(context).colorScheme.surface,
+                title: Text(item.name),
+                onChanged: (value) => cubit.toggleItemChecked(item),
+              )),
+        ));
   }
 }
 
