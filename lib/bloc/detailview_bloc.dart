@@ -22,7 +22,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
   void addTileToggle() {
     final state = this.state as DetailViewLoaded;
 
-    emit(state.copy(addTile: !state.addTile));
+    emit(state.copy(addTile: !state.addTile)..textController.clear());
   }
 
   void addItem(String title, bool keepAdding) async {
