@@ -12,7 +12,130 @@ class DetailView extends StatelessWidget {
   late final BuildContext context;
   late final DetailViewCubit cubit;
 
-  Widget dismissibleTile(Item item) {
+  Widget body() {
+    return Center(
+      child: BlocBuilder<DetailViewCubit, DetailViewState>(
+          bloc: cubit,
+          builder: (context, state) {
+            if (state is DetailViewLoading) {
+              return const CircularProgressIndicator();
+            }
+            state as DetailViewLoaded;
+
+            final items = state.supalist.items.where((item) => item.history == false).toList();
+
+            return RefreshIndicator(
+              child: state.supalist.items.isEmpty && !state.addTile
+                  ? ListView(
+                      physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics()),
+                      padding: EdgeInsets.symmetric(
+                          vertical: MediaQuery.of(context).size.height / 2.5),
+                      children: const [
+                        Center(
+                          child: Text(
+                            Strings.noItemsInListText,
+                            style: TextStyle(fontSize: 20),
+                          ),
+                        )
+                      ],
+                    )
+                  : ListView.builder(
+                      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 160, top: 16),
+                      itemCount: items.length + (state.addTile ? 1 : 0),
+                      itemBuilder: (context, i) {
+                        return i == items.length
+                            ? ItemSuggestion(cubit: cubit)
+                            : DismissibleItem(cubit: cubit, context: context, item: items[i]);
+                      }),
+              onRefresh: () async => await cubit.loadItems(),
+            );
+          }),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    this.context = context;
+    cubit = context.read<DetailViewCubit>();
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppBar(
+        title: BlocBuilder<DetailViewCubit, DetailViewState>(
+          builder: (context, state) {
+            return Text(state.supalist.name);
+          },
+        ),
+        actions: [
+          IconButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(Strings.notImplementedText)));
+              },
+              icon: const Icon(Icons.edit)),
+        ],
+      ),
+      body: body(),
+      floatingActionButton: BlocBuilder<DetailViewCubit, DetailViewState>(
+        builder: (context, state) {
+          return Align(
+            alignment: Alignment.bottomRight,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (state is DetailViewLoaded)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: state.addTile ? FloatingActionButton(
+                        onPressed: () => cubit.addTileToggle(),
+                        tooltip: Strings.removeItemTile,
+                        backgroundColor: const Color.fromARGB(255, 240, 73, 106),
+                        foregroundColor: Colors.white,
+                        heroTag: "btn1",
+                        child: const Icon(Icons.remove),
+                      )
+                    : FloatingActionButton(
+                        onPressed: () => cubit.clearCheckedItems(),
+                        tooltip: Strings.clearCheckedItems,
+                        backgroundColor: const Color.fromARGB(255, 72, 220, 139),
+                        foregroundColor: Colors.white,
+                        heroTag: "btn1",
+                        child: const Icon(Icons.clear_all),
+                    ),
+                  ),
+                FloatingActionButton(
+                  onPressed: () => state is DetailViewLoading
+                      ? null
+                      : (state as DetailViewLoaded).addTile ? cubit.addItem(state.textController.text, true) : cubit.addTileToggle(),
+                  tooltip: Strings.addItemText,
+                  foregroundColor: Colors.white,
+                  heroTag: "btn2",
+                  child: const Icon(Icons.add),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class DismissibleItem extends StatelessWidget {
+  const DismissibleItem({
+    super.key,
+    required this.cubit,
+    required this.context,
+    required this.item,
+  });
+
+  final DetailViewCubit cubit;
+  final BuildContext context;
+  final Item item;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
         margin: const EdgeInsets.only(bottom: 5),
         decoration: const BoxDecoration(
@@ -53,105 +176,6 @@ class DetailView extends StatelessWidget {
                 onChanged: (value) => cubit.toggleItemChecked(item),
               )),
         ));
-  }
-
-  Widget body() {
-    return Center(
-      child: BlocBuilder<DetailViewCubit, DetailViewState>(
-          bloc: cubit,
-          builder: (context, state) {
-            if (state is DetailViewLoading) {
-              return const CircularProgressIndicator();
-            }
-            state as DetailViewLoaded;
-
-            final items = state.supalist.items.where((item) => item.history == false).toList();
-
-            return RefreshIndicator(
-              child: state.supalist.items.isEmpty && !state.addTile
-                  ? ListView(
-                      physics: const BouncingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics()),
-                      padding: EdgeInsets.symmetric(
-                          vertical: MediaQuery.of(context).size.height / 2.5),
-                      children: const [
-                        Center(
-                          child: Text(
-                            Strings.noItemsInListText,
-                            style: TextStyle(fontSize: 20),
-                          ),
-                        )
-                      ],
-                    )
-                  : ListView.builder(
-                      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                      padding: const EdgeInsets.all(16),
-                      itemCount: items.length + (state.addTile ? 1 : 0),
-                      itemBuilder: (context, i) {
-                        return i == items.length
-                            ? ItemSuggestion(cubit: cubit)
-                            : dismissibleTile(items[i]);
-                      }),
-              onRefresh: () async => await cubit.loadItems(),
-            );
-          }),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    this.context = context;
-    cubit = context.read<DetailViewCubit>();
-
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
-        title: BlocBuilder<DetailViewCubit, DetailViewState>(
-          builder: (context, state) {
-            return Text(state.supalist.name);
-          },
-        ),
-        actions: [
-          IconButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(Strings.notImplementedText)));
-              },
-              icon: const Icon(Icons.edit)),
-        ],
-      ),
-      body: body(),
-      floatingActionButton: BlocBuilder<DetailViewCubit, DetailViewState>(
-        builder: (context, state) {
-          return Align(
-            alignment: Alignment.bottomRight,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (state is DetailViewLoaded && state.addTile)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: FloatingActionButton(
-                      onPressed: () => cubit.addTileToggle(),
-                      tooltip: Strings.removeItemTile,
-                      backgroundColor: const Color.fromARGB(255, 240, 73, 106),
-                      foregroundColor: Colors.white,
-                      child: const Icon(Icons.remove),
-                    ),
-                  ),
-                FloatingActionButton(
-                  onPressed: () => state is DetailViewLoading
-                      ? null
-                      : (state as DetailViewLoaded).addTile ? cubit.addItem(state.textController.text, true) : cubit.addTileToggle(),
-                  tooltip: Strings.addItemText,
-                  foregroundColor: Colors.white,
-                  child: const Icon(Icons.add),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
   }
 }
 
