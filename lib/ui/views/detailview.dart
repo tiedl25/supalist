@@ -42,7 +42,7 @@ class DetailView extends StatelessWidget {
                     )
                   : ListView.builder(
                       physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 160, top: 16),
                       itemCount: items.length + (state.addTile ? 1 : 0),
                       itemBuilder: (context, i) {
                         return i == items.length
