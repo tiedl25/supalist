@@ -27,7 +27,7 @@ class SpyMasterCubit extends Cubit<MasterViewState> implements MasterViewCubit {
   Future<void> loadSupalists() async {}
 
   @override
-  Future<void> removeSupalist(int id) async {}
+  Future<void> removeSupalist(String id) async {}
 }
 
 void main() {

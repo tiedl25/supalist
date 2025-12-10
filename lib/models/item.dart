@@ -1,18 +1,26 @@
+import 'package:uuid/uuid.dart';
+
 class Item{
-  int? id;
+  final String id;
   String name;
   late DateTime timestamp;
   bool checked;
   bool history;
+  String? owner;
+  final String? list;
 
-  Item({this.id, required this.name, timestamp, this.checked = false, this.history = false}) : timestamp = timestamp ?? DateTime.now();
+  Item({String? id, required this.name, timestamp, this.checked = false, this.history = false, required this.owner, this.list}) : 
+    id = id ?? Uuid().v4(),
+    timestamp = timestamp ?? DateTime.now();
 
   Map<String, dynamic> toMap() => {
-    'name': name,
     'id': id,
+    'name': name,
     'timestamp': timestamp.toString(),
     'checked': checked ? 1 : 0,
     'history': history ? 1 : 0,
+    'owner': owner,
+    'list': list,
   };
 
   factory Item.fromMap(Map<String, dynamic> map) {
@@ -22,6 +30,8 @@ class Item{
       timestamp: DateTime.parse(map['timestamp']),
       checked: map['checked'] == 1 ? true : false,
       history: map['history'] == 1 ? true : false,
+      owner: map['owner'],
+      list: map['list'],
     );
   }
 }

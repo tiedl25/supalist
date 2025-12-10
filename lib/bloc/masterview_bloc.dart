@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:supalist/bloc/masterview_states.dart';
+import 'package:supalist/data/backend_connector.dart';
 import 'package:supalist/data/database.dart';
 import 'package:supalist/models/supalist.dart';
 
@@ -26,7 +27,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     await loadSupalists();
   }
 
-  Future<void> removeSupalist(int id) async {
+  Future<void> removeSupalist(String id) async {
     final state = this.state as MasterViewLoaded;
 
     state.supalists.removeWhere((element) => element.id == id);
@@ -38,10 +39,13 @@ class MasterViewCubit extends Cubit<MasterViewState> {
   Future<void> addSupalist(String title) async {
     final state = this.state as MasterViewLoaded;
 
-    final newSupalist = Supalist(name: title);
+    final userId = getUserId();
+    if (userId == null) return;
+
+    final newSupalist = Supalist(name: title, owner: userId);
 
     state.supalists.add(newSupalist);
-    newSupalist.id = await DatabaseHelper.instance.add(newSupalist);
+    await DatabaseHelper.instance.addList(newSupalist);
 
     emit(MasterViewLoaded(supalists: state.supalists));
   }

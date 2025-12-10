@@ -150,7 +150,7 @@ class DismissibleItem extends StatelessWidget {
             extentRatio: 0.25,
             children: [
               SlidableAction(
-                onPressed: (_) => cubit.removeItem(item.id!),
+                onPressed: (_) => cubit.removeItem(item.id),
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
                 icon: Icons.delete,

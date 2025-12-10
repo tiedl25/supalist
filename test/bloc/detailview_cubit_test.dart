@@ -52,10 +52,8 @@ void main() {
     // ensure clean
     await DatabaseHelper.instance.delete();
 
-    final list = Supalist(name: 'Test List');
-    final listId = await DatabaseHelper.instance.add(list);
-    // set id so DetailViewCubit can use it
-    list.id = listId;
+    final list = Supalist(name: 'Test List', owner: 'tester');
+    await DatabaseHelper.instance.addList(list);
 
     final cubit = DetailViewCubit(list);
 
@@ -81,7 +79,7 @@ void main() {
 
   // remove
   final removeBefore = state.supalist.items.length;
-  cubit.removeItem(item.id!);
+  cubit.removeItem(item.id);
   await cubit.stream.firstWhere((s) => (s as DetailViewLoaded).supalist.items.length == removeBefore - 1);
   state = cubit.state as DetailViewLoaded;
   expect(state.supalist.items.any((i) => i.id == item.id), isFalse);

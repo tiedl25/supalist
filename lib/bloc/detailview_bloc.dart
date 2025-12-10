@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:supalist/bloc/detailview_states.dart';
+import 'package:supalist/data/backend_connector.dart';
 import 'package:supalist/data/database.dart';
 import 'package:supalist/models/item.dart';
 import 'package:supalist/models/supalist.dart';
@@ -14,7 +15,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
       this.state,
     );
 
-    state.supalist.items = await DatabaseHelper.instance.getItems(state.supalist.id!);
+    state.supalist.items = await DatabaseHelper.instance.getItems(state.supalist.id);
     sortItems();
 
     emit(state);
@@ -45,19 +46,25 @@ class DetailViewCubit extends Cubit<DetailViewState> {
       existingItem.checked = false;
       await DatabaseHelper.instance.updateItem(existingItem);
     } else {
+      final userId = getUserId();
+      if (userId == null) return;
+
       final newItem = Item(
         name: title,
         checked: false,
+        history: false,
+        list: state.supalist.id,
+        owner: userId,
       );
 
       state.supalist.items.add(newItem);
-      newItem.id = await DatabaseHelper.instance.addItem(newItem, state.supalist.id!);
+      await DatabaseHelper.instance.addItem(newItem);
     }
 
     emit(state.copy(addTile: keepAdding)..textController.clear());
   }
 
-  void removeItem(int itemId) async {
+  void removeItem(String itemId) async {
     final state = this.state as DetailViewLoaded;
 
     final item = state.supalist.items.firstWhere((element) => element.id == itemId);
@@ -72,7 +79,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
     final item = state.supalist.items.firstWhere((element) => element.name == itemName);
     state.supalist.items.remove(item);
-    await DatabaseHelper.instance.removeItem(item.id!);
+    await DatabaseHelper.instance.removeItem(item.id);
     emit(state.copy());
   }
 
