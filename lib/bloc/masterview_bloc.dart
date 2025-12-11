@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:supalist/bloc/masterview_states.dart';
-import 'package:supalist/data/backend_connector.dart';
 import 'package:supalist/data/database.dart';
+import 'package:supalist/data/supabase.dart';
 import 'package:supalist/models/supalist.dart';
 
 class MasterViewCubit extends Cubit<MasterViewState> {
@@ -38,9 +38,6 @@ class MasterViewCubit extends Cubit<MasterViewState> {
 
   Future<void> addSupalist(String title) async {
     final state = this.state as MasterViewLoaded;
-
-    final userId = getUserId();
-    if (userId == null) return;
 
     final newSupalist = Supalist(name: title, owner: userId);
 

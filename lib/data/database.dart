@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:powersync/powersync.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supalist/data/supabase.dart';
 import 'package:supalist/models/item.dart';
 import 'package:supalist/models/schema.dart';
 import 'package:supalist/models/supalist.dart';
@@ -18,16 +21,75 @@ class DatabaseHelper {
   static PowerSyncDatabase? _database;
   Future<PowerSyncDatabase> get database async => _database ??= await _initDatabase();
 
-  Future<PowerSyncDatabase> _initDatabase() async {
+  Future<String> getDatabasePath() async {
+    if (kIsWeb) {
+      return _databaseName;
+    }
     final dir = await getApplicationSupportDirectory();
-    final path = join(dir.path, _databaseName);
+    return join(dir.path, _databaseName);
+  }
 
-    final db = PowerSyncDatabase(schema: schema, path: path);
+  Future<PowerSyncDatabase> _initDatabase() async {
+    final path = await getDatabasePath();
+
+    final db = PowerSyncDatabase(schema: loggedIn ? schema : localSchema, path: path);
     await db.initialize();
-    final connector = BackendConnector(db);
-
-    await db.connect(connector: connector);
+    listenForAuthenticationChanges();
     return db;
+  }
+
+  void listenForAuthenticationChanges() {
+    Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
+      final AuthChangeEvent event = data.event;
+      PowerSyncDatabase db = await instance.database;
+
+      if (event == AuthChangeEvent.signedIn) {
+        List<Item> items = await getItems();
+        List<Supalist> lists = await getLists();
+
+        await db.updateSchema(schema);
+
+        // Connect to PowerSync when the user is signed in
+        final connector = BackendConnector(db);
+        await db.connect(connector: connector);
+
+        await uploadAllData(items: items, lists: lists);
+      } else if (event == AuthChangeEvent.signedOut) {
+        // Implicit sign out - disconnect, but don't delete data
+        await db.disconnect();
+        await db.updateSchema(localSchema);
+      } else if (event == AuthChangeEvent.tokenRefreshed) {
+        // Supabase token refreshed - trigger token refresh for PowerSync.
+        final connector = BackendConnector(db);
+        await connector.prefetchCredentials();
+      }
+    });
+  }
+
+  Future<void> uploadAllData({List<Item> items = const [], List<Supalist> lists = const []}) async {
+    PowerSyncDatabase db = await instance.database;
+
+    items.forEach((item) => item.owner = userId);
+    lists.forEach((list) => list.owner = userId);
+
+    final sql = [
+      'INSERT INTO lists (id, name, owner, timestamp) VALUES (?, ?, ?, ?)',
+      'INSERT INTO items (id, name, timestamp, checked, history, owner, list) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    ];
+
+    final parameterSets = [
+      lists.map((list) => list.toMap().values.toList()).toList(),
+      items.map((item) => item.toMap().values.toList()).toList(),
+    ];
+
+    await db.executeBatch(sql[0], parameterSets[0]);
+    await db.executeBatch(sql[1], parameterSets[1]);
+  }
+
+  Future<void> logout() async {
+    PowerSyncDatabase db = await instance.database;
+    await Supabase.instance.client.auth.signOut();
+    await db.disconnectAndClear();
   }
 
   Future<void> delete() async {
@@ -88,13 +150,13 @@ class DatabaseHelper {
     final row = await db.get('SELECT * FROM lists WHERE id = ?', [id]);
     Supalist supalist = Supalist.fromMap(row);
 
-    supalist.items = await getItems(id, db);
+    supalist.items = await getItems(id: id, db: db);
     return supalist;
   }
 
-  Future<List<Item>> getItems(String id, [PowerSyncDatabase? db]) async {
+  Future<List<Item>> getItems({String? id, PowerSyncDatabase? db}) async {
     db = db ?? await instance.database;
-    final rows = await db.getAll('SELECT * FROM items WHERE list = ?', [id]);
+    final rows = await db.getAll('SELECT * FROM items WHERE ${id != null ? 'list = ?' : '1=1'}', id != null ? [id] : []);
     List<Item> itemlist = rows.isNotEmpty ? rows.map((e) => Item.fromMap(e)).toList() : [];
     return itemlist;
   }

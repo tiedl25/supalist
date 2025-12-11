@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:supalist/bloc/detailview_states.dart';
 import 'package:supalist/data/backend_connector.dart';
 import 'package:supalist/data/database.dart';
+import 'package:supalist/data/supabase.dart';
 import 'package:supalist/models/item.dart';
 import 'package:supalist/models/supalist.dart';
 
@@ -15,7 +16,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
       this.state,
     );
 
-    state.supalist.items = await DatabaseHelper.instance.getItems(state.supalist.id);
+    state.supalist.items = await DatabaseHelper.instance.getItems(id: state.supalist.id);
     sortItems();
 
     emit(state);
@@ -46,8 +47,6 @@ class DetailViewCubit extends Cubit<DetailViewState> {
       existingItem.checked = false;
       await DatabaseHelper.instance.updateItem(existingItem);
     } else {
-      final userId = getUserId();
-      if (userId == null) return;
 
       final newItem = Item(
         name: title,

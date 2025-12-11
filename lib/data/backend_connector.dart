@@ -153,16 +153,3 @@ class BackendConnector extends PowerSyncBackendConnector {
     }
   }
 }
-
-String? getUserId() {
-  return Supabase.instance.client.auth.currentSession?.user.id;
-}
-
-bool isLoggedIn() {
-  return Supabase.instance.client.auth.currentSession?.accessToken != null;
-}
-
-Future<void> logout(PowerSyncDatabase db) async {
-  await Supabase.instance.client.auth.signOut();
-  await db.disconnectAndClear();
-}
