@@ -1,12 +1,7 @@
-import 'package:flutter/foundation.dart';
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:powersync/powersync.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supalist/app_config.dart';
 import 'package:logging/logging.dart';
-import 'package:supalist/models/schema.dart';
-
 final log = Logger('powersync-supabase');
 
 /// Postgres Response codes that we cannot recover from by retrying.
@@ -22,31 +17,19 @@ final List<RegExp> fatalResponseCodes = [
 ];
 
 class BackendConnector extends PowerSyncBackendConnector {
-  PowerSyncDatabase db;
-
   Future<void>? _refreshFuture;
 
-  BackendConnector(this.db);
+  BackendConnector();
   @override
   Future<PowerSyncCredentials?> fetchCredentials() async {
     await _refreshFuture;
 
-    var session = Supabase.instance.client.auth.currentSession;
+    final session = Supabase.instance.client.auth.currentSession;
     if (session == null) {
-      final response = await Supabase.instance.client.auth.signInWithPassword(
-        email: AppConfig.testEmail,
-        password: AppConfig.testPassword,
-      );
-      if (response.session == null) {
-        return null;
-      }
-
-      session = response.session;
+      return null;
     }
 
-    // Use the access token to authenticate against PowerSync
-    final token = session!.accessToken;
-
+    final token = session.accessToken;
     final userId = session.user.id;
     final expiresAt = session.expiresAt == null
         ? null
@@ -54,7 +37,6 @@ class BackendConnector extends PowerSyncBackendConnector {
 
     return PowerSyncCredentials(
       endpoint: AppConfig.powersyncUrl,
-      // Use a development token (see Authentication Setup https://docs.powersync.com/installation/authentication-setup/development-tokens) to get up and running quickly
       token: token,
       userId: userId,
       expiresAt: expiresAt,
@@ -80,11 +62,8 @@ class BackendConnector extends PowerSyncBackendConnector {
         .then((response) => null, onError: (error) => null);
   }
 
-  getSupabaseClient(PowerSyncDatabase database) async {    
-    // --- FIX: Create a Supabase client with the required token for the upload ---
-    // The default Supabase.instance.client is anonymous if no user is signed in.
+  Future<SupabaseClient> getSupabaseClient(PowerSyncDatabase database) async {
     final supabase = SupabaseClient(
-      // Use your AppConfig URL and anonKey, but override the headers with the token
       AppConfig.supabaseUrl, 
       AppConfig.supabaseAnonKey
       );

@@ -50,7 +50,7 @@ class DatabaseHelper {
         await db.updateSchema(schema);
 
         // Connect to PowerSync when the user is signed in
-        final connector = BackendConnector(db);
+        final connector = BackendConnector();
         await db.connect(connector: connector);
 
         await uploadAllData(items: items, lists: lists);
@@ -60,7 +60,7 @@ class DatabaseHelper {
         await db.updateSchema(localSchema);
       } else if (event == AuthChangeEvent.tokenRefreshed) {
         // Supabase token refreshed - trigger token refresh for PowerSync.
-        final connector = BackendConnector(db);
+        final connector = BackendConnector();
         await connector.prefetchCredentials();
       }
     });

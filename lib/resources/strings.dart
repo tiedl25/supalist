@@ -19,4 +19,10 @@ class Strings {
   static const String deleteText = "Delete";
   static const String notImplementedText = "Not implemented yet";
   static const String settingsText = "Settings";
+  static const String continueWithoutAccount = "Continue without an account";
+  static const String signIn = "Sign In";
+  static const String checkEmail = "Please check your email to verify your account.";
+  static const String logout = "Logout";
+  static const String login = "Login";
+  static const String logoutDialogTitle = "Are you sure you want to logout?";
 }

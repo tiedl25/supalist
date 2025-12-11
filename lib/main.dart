@@ -9,11 +9,13 @@ import 'package:supalist/bloc/detailview_bloc.dart';
 import 'package:supalist/bloc/masterview_bloc.dart';
 import 'package:supalist/bloc/settingsview_bloc.dart';
 import 'package:supalist/bloc/theme_bloc.dart';
+import 'package:supalist/ui/views/authview.dart';
 import 'package:supalist/ui/views/detailview.dart';
 import 'package:supalist/ui/views/masterview.dart';
 import 'package:supalist/ui/theme/dark_theme.dart';
 import 'package:supalist/ui/theme/light_theme.dart';
 import 'package:supalist/ui/views/settingsview.dart';
+import 'package:supalist/ui/views/splashview.dart';
 
 void updateCheck() {
   if (!kDebugMode) {
@@ -46,6 +48,10 @@ Future main() async {
 
   final prefs = await SharedPreferences.getInstance();
 
+  if (prefs.getBool('offline') == null) {
+    prefs.setBool('offline', false);
+  }
+
   await Supabase.initialize(
     url: AppConfig.supabaseUrl,
     anonKey: AppConfig.supabaseAnonKey,
@@ -72,8 +78,10 @@ class MyApp extends StatelessWidget {
             theme: lightTheme,
             darkTheme: darkTheme,
             themeMode: themeMode,
-            initialRoute: "/home",
+            initialRoute: "/",
             routes: {
+              '/': (context) => SplashView(prefs: prefs),
+              '/auth': (context) => AuthView(prefs: prefs),
               '/home': (context) => BlocProvider(
                 create: (context) => MasterViewCubit(),
                 child: MasterView(),
