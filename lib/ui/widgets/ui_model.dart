@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:supalist/resources/strings.dart';
 import 'package:supalist/resources/values.dart';
+import 'package:supalist/ui/widgets/overlayLoadingScreen.dart';
+import 'package:supalist/ui/widgets/overlayMessage.dart';
 
 class DialogModel extends StatelessWidget {
   final String? title;
@@ -147,3 +150,28 @@ class PillModel extends StatelessWidget{
   }
 }
 
+void showOverlayMessage({
+  required BuildContext context,
+  required String message,
+  Color backgroundColor = Colors.black,
+  Color textColor = Colors.white,
+  Duration duration = const Duration(seconds: 3),
+}) {
+  final overlayEntry = OverlayMessage(
+    message: message, 
+    backgroundColor: backgroundColor, 
+    textColor: textColor
+  );
+  Overlay.of(context).insert(overlayEntry);
+  Timer(duration, () => overlayEntry.remove());
+}
+
+Future<void> showLoadingEntry({
+  required BuildContext context,
+  required Function onWait
+}) async {
+  final overlayEntry = OverlayLoadingScreen();
+  Overlay.of(context).insert(overlayEntry);
+  await onWait();
+  overlayEntry.remove();
+}
