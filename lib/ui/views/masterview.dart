@@ -9,6 +9,8 @@ import 'package:supalist/resources/strings.dart';
 import 'package:supalist/resources/values.dart';
 import 'package:supalist/ui/dialogs/itemdialog.dart';
 import 'package:supalist/models/supalist.dart';
+import 'package:supalist/ui/widgets/customDialog.dart';
+import 'package:supalist/ui/widgets/ui_model.dart';
 
 class MasterView extends StatelessWidget {
   late final MasterViewCubit cubit;
@@ -30,41 +32,80 @@ class MasterView extends StatelessWidget {
       });
   }
 
+  void showInvitationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CustomDialog(
+          content: Text(
+            Strings.invitationMessage,
+            style: TextStyle(fontSize: 20),
+          ),
+          onConfirmed: () async => await cubit.acceptInvitation(),
+          onDismissed: () => cubit.declineInvitation(),
+        );
+      },
+    );
+  }
+
   Widget body() {
     return Center(
-      child: BlocBuilder<MasterViewCubit, MasterViewState>(
-          builder: (context, state) {
-        if (state is MasterViewLoading) {
-          return const Center(child: CircularProgressIndicator());
+      child: BlocConsumer<MasterViewCubit, MasterViewState>(
+        bloc: cubit,
+        listenWhen: (_, current) => current is MasterViewListener,
+        listener: (context, state) {
+          switch (state.runtimeType) {
+            case MasterViewShowSnackBar:
+              showOverlayMessage(
+                context: context, 
+                message: (state as MasterViewShowSnackBar).message,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+              );
+              break;
+            case MasterViewPushAuthView:
+              Navigator.pushReplacementNamed(context, '/auth');
+              break;
+            case MasterViewShowInvitationDialog:
+              showInvitationDialog();
+              break;
+            case MasterViewShowAddDialog:
+              showAddDialog();
+              break;
+          }
+        },
+        builder: (context, state) {
+          if (state is MasterViewLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          state as MasterViewLoaded;
+          final listOfSupalists = state.supalists;
+          return RefreshIndicator(
+              child: listOfSupalists.isEmpty
+                  ? ListView(
+                      physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics()),
+                      padding: EdgeInsets.symmetric(
+                          vertical: MediaQuery.of(context).size.height / 2.5),
+                      children: const [
+                        Center(
+                          child: Text(
+                            Strings.noItemsInListText,
+                            style: TextStyle(fontSize: 20),
+                          ),
+                        )
+                      ],
+                    )
+                  : ListView.builder(
+                      physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics()),
+                      padding: const EdgeInsets.all(16),
+                      itemCount: listOfSupalists.length,
+                      itemBuilder: (context, i) {
+                        return dismissible(listOfSupalists[i]);
+                      }),
+              onRefresh: () async => await cubit.loadSupalists());
         }
-        state as MasterViewLoaded;
-        final listOfSupalists = state.supalists;
-        return RefreshIndicator(
-            child: listOfSupalists.isEmpty
-                ? ListView(
-                    physics: const BouncingScrollPhysics(
-                        parent: AlwaysScrollableScrollPhysics()),
-                    padding: EdgeInsets.symmetric(
-                        vertical: MediaQuery.of(context).size.height / 2.5),
-                    children: const [
-                      Center(
-                        child: Text(
-                          Strings.noItemsInListText,
-                          style: TextStyle(fontSize: 20),
-                        ),
-                      )
-                    ],
-                  )
-                : ListView.builder(
-                    physics: const BouncingScrollPhysics(
-                        parent: AlwaysScrollableScrollPhysics()),
-                    padding: const EdgeInsets.all(16),
-                    itemCount: listOfSupalists.length,
-                    itemBuilder: (context, i) {
-                      return dismissible(listOfSupalists[i]);
-                    }),
-            onRefresh: () async => await cubit.loadSupalists());
-      }),
+      ),
     );
   }
 

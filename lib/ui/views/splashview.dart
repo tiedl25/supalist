@@ -21,7 +21,7 @@ class SplashView extends StatelessWidget {
         child: !activeSession && prefs.getBool('offline') == false
           ? AuthView(prefs: prefs,)
           : BlocProvider(
-              create: (context) => MasterViewCubit(), 
+              create: (context) => MasterViewCubit(prefs: prefs), 
               child: MasterView()
             ),
       ),

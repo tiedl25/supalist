@@ -9,3 +9,39 @@ class MasterViewLoaded extends MasterViewState {
 
   MasterViewLoaded({required this.supalists});
 }
+
+class MasterViewAddDialog extends MasterViewLoaded {
+  MasterViewAddDialog({required super.supalists});
+
+  factory MasterViewAddDialog.from(state) {
+    return MasterViewAddDialog(supalists: state.supalists);
+  }
+}
+
+class MasterViewInvitationDialog extends MasterViewState {
+  final String permissionId;
+  
+  MasterViewInvitationDialog({required this.permissionId});
+}
+
+
+
+abstract class MasterViewListener extends MasterViewState {}
+
+class MasterViewShowAddDialog extends MasterViewListener {
+  MasterViewShowAddDialog();
+}
+
+class MasterViewShowInvitationDialog extends MasterViewListener {
+  MasterViewShowInvitationDialog();
+}
+
+class MasterViewShowSnackBar extends MasterViewListener {
+  final String message;
+
+  MasterViewShowSnackBar({required this.message});
+}
+
+class MasterViewPushAuthView extends MasterViewListener {
+  MasterViewPushAuthView();
+}

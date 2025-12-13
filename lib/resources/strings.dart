@@ -25,4 +25,7 @@ class Strings {
   static const String logout = "Logout";
   static const String login = "Login";
   static const String logoutDialogTitle = "Are you sure you want to logout?";
+  static const String invitationMessage = "You have been invited to join a Supalist. Do you want to accept the invitation?";
+  static const String notAuthorized = "You are not authorized for this action!";
+  static const String itemAlreadyAdded = "The item has already been added";
 }

@@ -1,15 +1,76 @@
+import 'package:app_links/app_links.dart';
 import 'package:bloc/bloc.dart';
 import 'package:supalist/bloc/masterview_states.dart';
 import 'package:supalist/data/database.dart';
 import 'package:supalist/data/supabase.dart';
 import 'package:supalist/models/supalist.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MasterViewCubit extends Cubit<MasterViewState> {
+  final SharedPreferences prefs;
   late final DatabaseHelper databaseHelper;
+  bool _initialLinkProcessed = false;
 
-  MasterViewCubit() : super(MasterViewLoading()) {
+  MasterViewCubit({required this.prefs}) : super(MasterViewLoading()) {
     databaseHelper = DatabaseHelper.instance;
     loadSupalists();
+  }
+
+  void handleIncomingLinks() {
+    final appLinks = AppLinks();
+
+    if (!_initialLinkProcessed) {
+      appLinks.getInitialLink().then((Uri? uri) async {
+        if (uri != null) showInvitationDialog(uri.queryParameters['id']);
+      });
+      _initialLinkProcessed = true;
+    }
+
+    appLinks.uriLinkStream.listen((Uri? uri) async {
+      if (uri != null) {
+        if (state.runtimeType == MasterViewInvitationDialog) {
+          return;
+        }
+
+        showInvitationDialog(uri.queryParameters['id']);
+      }
+    }, onError: (err) {
+      print('Error occurred: $err');
+    });
+  }
+
+  void showInvitationDialog(final String? permissionId) {
+    if (permissionId != null) {
+      final newState = MasterViewInvitationDialog(
+        permissionId: permissionId
+      );
+
+      emit(MasterViewShowInvitationDialog());
+
+      emit(newState);
+    }
+  }
+
+  Future<void> acceptInvitation() async {
+    final id = (state as MasterViewInvitationDialog).permissionId;
+    final result = await DatabaseHelper.instance.confirmPermission(id);
+    if (result.isSuccess) {
+      final newState = MasterViewLoading();
+      emit(newState);
+
+      loadSupalists();
+    } else {
+      final newState = MasterViewShowSnackBar(
+        message: result.message!
+      );
+
+      emit(newState);
+    }
+  }
+
+  void declineInvitation() {
+    final newState = MasterViewLoading();
+    emit(newState);
   }
 
   Future<void> loadSupalists() async {
@@ -19,6 +80,14 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     } catch (e) {
       // Handle error state if necessary
     }
+  }
+
+  void showAddDialog() {
+    final newState = MasterViewAddDialog.from(state);
+
+    emit(MasterViewShowAddDialog());
+
+    emit(newState);
   }
 
   Future<void> deleteDatabase() async {

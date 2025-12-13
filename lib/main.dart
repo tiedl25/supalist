@@ -83,7 +83,7 @@ class MyApp extends StatelessWidget {
               '/': (context) => SplashView(prefs: prefs),
               '/auth': (context) => AuthView(prefs: prefs),
               '/home': (context) => BlocProvider(
-                create: (context) => MasterViewCubit(),
+                create: (context) => MasterViewCubit(prefs: prefs),
                 child: MasterView(),
               ),
               '/settings': (context) => BlocProvider(

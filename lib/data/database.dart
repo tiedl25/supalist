@@ -6,11 +6,14 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:powersync/powersync.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supalist/data/result.dart';
 import 'package:supalist/data/supabase.dart';
+import 'package:supalist/models/access_rights.dart';
 import 'package:supalist/models/item.dart';
 import 'package:supalist/models/schema.dart';
 import 'package:supalist/models/supalist.dart';
 import 'package:supalist/data/backend_connector.dart';
+import 'package:supalist/resources/strings.dart';
 
 class DatabaseHelper {
   DatabaseHelper._privateConstructor();
@@ -100,6 +103,41 @@ class DatabaseHelper {
       await file.delete();
     }
     _database = null;
+  }
+
+  Future<Result> confirmPermission(String permissionId) async {
+    PowerSyncDatabase db = await instance.database;
+
+    final permissions = await db.get("SELECT * FROM permissions WHERE id = ?", [permissionId]);
+
+    if (permissions.isEmpty) return Result.failure(Strings.notAuthorized);
+    
+    AccessRights permission = AccessRights.fromMap(permissions);
+
+    if(permission.userEmail != null){
+      if (permission.userEmail != currentUser!.email) return Result.failure(Strings.notAuthorized);
+
+      permission.user = currentUser!.id;
+      permission.expirationDate = null;
+    } else {
+      permission = AccessRights(
+        list: permission.list,
+        user: permission.user,
+        fullAccess: permission.fullAccess,
+        userEmail: currentUser!.email,
+      );
+    }
+
+    final existingPermissions = await db.get('SELECT * FROM permissions WHERE itemId = ? AND userId = ?', [permission.list, permission.user]);
+
+    if (existingPermissions.isNotEmpty) return Result.failure(Strings.itemAlreadyAdded);    
+
+    await db.execute(
+      'INSERT INTO permissions (id, list, user, userEmail, fullAccess, expirationDate) VALUES (?, ?, ?, ?, ?, ?)',
+      permission.toMap().values.toList(),
+    );
+
+    return Result.success(null);
   }
 
   Future<void> addList(Supalist itemlist) async {
