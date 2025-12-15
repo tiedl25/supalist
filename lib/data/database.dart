@@ -32,11 +32,18 @@ class DatabaseHelper {
     return join(dir.path, _databaseName);
   }
 
+  Future<void> connectToDatabase(PowerSyncDatabase db) async {
+    final connector = BackendConnector();
+    await db.connect(connector: connector);
+    return;
+  }
+
   Future<PowerSyncDatabase> _initDatabase() async {
     final path = await getDatabasePath();
 
     final db = PowerSyncDatabase(schema: loggedIn ? schema : localSchema, path: path);
     await db.initialize();
+    if (loggedIn) await connectToDatabase(db);
     listenForAuthenticationChanges();
     return db;
   }
@@ -108,11 +115,13 @@ class DatabaseHelper {
   Future<Result> confirmPermission(String permissionId) async {
     PowerSyncDatabase db = await instance.database;
 
-    final permissions = await db.get("SELECT * FROM permissions WHERE id = ?", [permissionId]);
+    final permissions = await db.get("SELECT * FROM accessRights WHERE id = ?", [permissionId]);
 
     if (permissions.isEmpty) return Result.failure(Strings.notAuthorized);
     
     AccessRights permission = AccessRights.fromMap(permissions);
+
+    bool newPermission = false;
 
     if(permission.userEmail != null){
       if (permission.userEmail != currentUser!.email) return Result.failure(Strings.notAuthorized);
@@ -120,29 +129,50 @@ class DatabaseHelper {
       permission.user = currentUser!.id;
       permission.expirationDate = null;
     } else {
+      newPermission = true;
       permission = AccessRights(
         list: permission.list,
-        user: permission.user,
-        fullAccess: permission.fullAccess,
+        user: currentUser!.id,
         userEmail: currentUser!.email,
       );
     }
 
-    final existingPermissions = await db.get('SELECT * FROM permissions WHERE itemId = ? AND userId = ?', [permission.list, permission.user]);
-
+    final existingPermissions = await db.getAll('SELECT * FROM accessRights WHERE list = ? AND user = ?', [permission.list, permission.user]);
     if (existingPermissions.isNotEmpty) return Result.failure(Strings.itemAlreadyAdded);    
+    
+    if (newPermission) {
+      await db.execute(
+        'INSERT INTO accessRights (id, list, user, userEmail, expirationDate) VALUES (?, ?, ?, ?, ?)',
+        permission.toMap().values.toList(),
+      );
+    } else {
+      await db.execute(
+        'UPDATE accessRights SET user = ?, userEmail = ?, expirationDate = ? WHERE id = ?',
+        [permission.user, permission.userEmail, permission.expirationDate.toString(), permission.id],
+      );
+    }
+    return Result.success(null);
+  }
 
+  Future<void> addPermission(AccessRights permission) async {
+    PowerSyncDatabase db = await instance.database;
     await db.execute(
-      'INSERT INTO permissions (id, list, user, userEmail, fullAccess, expirationDate) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO accessRights (id, list, user, userEmail, expirationDate) VALUES (?, ?, ?, ?, ?)',
       permission.toMap().values.toList(),
     );
-
-    return Result.success(null);
   }
 
   Future<void> addList(Supalist itemlist) async {
     PowerSyncDatabase db = await instance.database;
+
     await db.execute('INSERT INTO lists (id, name, owner, timestamp) VALUES (?, ?, ?, ?)', itemlist.toMap().values.toList());
+
+    await addPermission(AccessRights(
+      list: itemlist.id,
+      user: itemlist.owner!,
+      userEmail: currentUser!.email,
+      expirationDate: null,
+    ));    
 
     for (Item item in itemlist.items) {
       await addItem(item);

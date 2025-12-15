@@ -73,6 +73,7 @@ class MasterView extends StatelessWidget {
               break;
           }
         },
+        buildWhen: (_, current) => current is MasterViewLoaded || current is MasterViewLoading,
         builder: (context, state) {
           if (state is MasterViewLoading) {
             return const Center(child: CircularProgressIndicator());

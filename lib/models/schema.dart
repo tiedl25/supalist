@@ -14,6 +14,12 @@ const schema = Schema([
     Column.text('owner'),
     Column.text('list')
   ], viewName: 'items'),
+  Table('accessRights', [
+    Column.text('list'),
+    Column.text('user'),
+    Column.text('userEmail'),
+    Column.text('expirationDate')
+  ]),
   Table.localOnly('local_lists', [
     Column.text('timestamp'),
     Column.text('name'),

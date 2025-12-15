@@ -14,13 +14,17 @@ class MasterViewCubit extends Cubit<MasterViewState> {
   MasterViewCubit({required this.prefs}) : super(MasterViewLoading()) {
     databaseHelper = DatabaseHelper.instance;
     loadSupalists();
+    handleIncomingLinks();
   }
 
   void handleIncomingLinks() {
     final appLinks = AppLinks();
-
     if (!_initialLinkProcessed) {
       appLinks.getInitialLink().then((Uri? uri) async {
+        if (state.runtimeType == MasterViewInvitationDialog) {
+          return;
+        }
+
         if (uri != null) showInvitationDialog(uri.queryParameters['id']);
       });
       _initialLinkProcessed = true;
@@ -71,6 +75,7 @@ class MasterViewCubit extends Cubit<MasterViewState> {
   void declineInvitation() {
     final newState = MasterViewLoading();
     emit(newState);
+    loadSupalists();
   }
 
   Future<void> loadSupalists() async {
