@@ -28,4 +28,13 @@ class Strings {
   static const String invitationMessage = "You have been invited to join a Supalist. Do you want to accept the invitation?";
   static const String notAuthorized = "You are not authorized for this action!";
   static const String itemAlreadyAdded = "The item has already been added";
+  static const String wannaSignIn = "Do you want to sign in to share your lists and sync them across devices?";
+  static const String shareSupalistDialogTitle = "Share Supalist";
+  static const String email = "Email";
+  static const String emailCannotBeEmpty = "Email cannot be empty!";
+  static const String alreadyGrantedAccess = "User is already granted access!";
+  static const String alreadyHasAccess = "User already has access!";
+  static const String invitedToSupalist = "You are invited to a Supalist. Accept by opening this link.\n\n";
+  static const String notAuthorizedShareItem = "You are not authorized to share this item!";
+  static const String cannotShareWithYourself = "You cannot share a list with yourself!";
 }

@@ -7,7 +7,7 @@ class AccessRights {
   String? userEmail;
   DateTime? expirationDate;
 
-  AccessRights({String? id, required this.list, required this.user, this.userEmail, DateTime? expirationDate}) : 
+  AccessRights({String? id, required this.list, this.user, this.userEmail, DateTime? expirationDate}) : 
     id = id ?? Uuid().v4();
 
   Map<String, dynamic> toMap() => {

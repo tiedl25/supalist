@@ -43,7 +43,7 @@ class DatabaseHelper {
 
     final db = PowerSyncDatabase(schema: loggedIn ? schema : localSchema, path: path);
     await db.initialize();
-    if (loggedIn) await connectToDatabase(db);
+    if (loggedIn) await connectToDatabase(db); //TODO: Move to auth listener
     listenForAuthenticationChanges();
     return db;
   }
@@ -112,6 +112,93 @@ class DatabaseHelper {
     _database = null;
   }
 
+  Future<Result> addSharePermission(AccessRights permission) async {
+    //TODO: Ensure permission is uploaded by the time the user tries to use the link
+    PowerSyncDatabase db = await instance.database;
+
+    if (currentUser == null) {
+      return Result.failure(Strings.notAuthorized);
+    }
+
+    if (permission.userEmail == currentUser!.email) {
+      return Result.failure(Strings.cannotShareWithYourself);
+    }
+    final permissionRowsWithListId = await db.getAll('SELECT * FROM accessRights WHERE list = ? and (user != ? or user is null)', [permission.list, userId]);
+    List<AccessRights> permissionsWithListId = permissionRowsWithListId.map<AccessRights>((e) => AccessRights.fromMap(e)).toList();
+
+    if (permissionsWithListId.any((p) => p.userEmail == permission.userEmail)) {
+      AccessRights permissionWithSameUser = permissionsWithListId.firstWhere((p) => p.userEmail == permission.userEmail);
+
+      if (permission.userEmail == null) {
+        if (permission.expirationDate != permissionWithSameUser.expirationDate) {
+          await db.execute(
+            'UPDATE accessRights SET expirationDate = ? WHERE id = ?',
+            [permission.expirationDate.toString(), permissionWithSameUser.id],
+          );
+        }
+        return Result.success(permissionWithSameUser);
+      } else {
+        if (permissionWithSameUser.user != null) {
+          return Result.failure(Strings.alreadyHasAccess);
+        }
+
+        if (permission.expirationDate != permissionWithSameUser.expirationDate) {
+          await db.execute(
+            'UPDATE accessRights SET expirationDate = ? WHERE id = ?',
+            [permission.expirationDate.toString(), permissionWithSameUser.id],
+          );
+        }
+        return Result.success(permissionWithSameUser);
+      }
+    }
+
+    if (permissionsWithListId.any((p) => p.userEmail == null && permission.userEmail != null)) {
+      AccessRights permissionWithoutUser = permissionsWithListId.firstWhere((p) => p.userEmail == null);
+
+      if (permission.expirationDate != permissionWithoutUser.expirationDate) {
+        await db.execute(
+          'UPDATE accessRights SET expirationDate = ? WHERE id = ?',
+          [permission.expirationDate.toString(), permissionWithoutUser.id],
+        );
+      }
+      return Result.success(permissionWithoutUser);
+    }
+
+
+    if (permissionsWithListId.any((p) => p.userEmail != null && permission.userEmail == null && p.user == null)) {
+      List<AccessRights> permissionsWithOtherUser = permissionsWithListId.where((p) => p.userEmail != null && p.user == null).toList();
+
+      for (final (index, perm) in permissionsWithOtherUser.indexed) {
+        if (index == 0) {
+          if (permission.expirationDate != perm.expirationDate) {
+            await db.execute(
+              'UPDATE accessRights SET expirationDate = ?, userEmail = ? WHERE id = ?',
+              [permission.expirationDate.toString(), null, perm.id],
+            );
+          } else {
+            await db.execute(
+              'UPDATE accessRights SET userEmail = ? WHERE id = ?',
+              [null, perm.id],
+            );
+          }
+        } else {
+          await db.execute(
+            'DELETE FROM accessRights WHERE id = ?',
+            [perm.id],
+          );
+        }
+      }
+      return Result.success(permissionsWithOtherUser.first);
+    }
+
+    await db.execute(
+      "INSERT INTO accessRights (id, list, user, userEmail, expirationDate) VALUES (?, ?, ?, ?, ?)",
+      permission.toMap().values.toList(),
+    );
+
+    return Result.success(permission);
+  }
+
   Future<Result> confirmPermission(String permissionId) async {
     PowerSyncDatabase db = await instance.database;
 
@@ -154,12 +241,13 @@ class DatabaseHelper {
     return Result.success(null);
   }
 
-  Future<void> addPermission(AccessRights permission) async {
+  Future<Result> addPermission(AccessRights permission) async {
     PowerSyncDatabase db = await instance.database;
     await db.execute(
       'INSERT INTO accessRights (id, list, user, userEmail, expirationDate) VALUES (?, ?, ?, ?, ?)',
       permission.toMap().values.toList(),
     );
+    return Result.success(null);
   }
 
   Future<void> addList(Supalist itemlist) async {

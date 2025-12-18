@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:supalist/bloc/detailview_bloc.dart';
 import 'package:supalist/bloc/detailview_states.dart';
+import 'package:supalist/data/supabase.dart';
 import 'package:supalist/resources/strings.dart';
 import 'package:supalist/resources/values.dart';
+import 'package:supalist/ui/dialogs/invitedialog.dart';
 import 'package:supalist/ui/widgets/ui_model.dart';
 import 'package:supalist/models/item.dart';
 
@@ -12,10 +14,40 @@ class DetailView extends StatelessWidget {
   late final BuildContext context;
   late final DetailViewCubit cubit;
 
+  void showInviteDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return BlocProvider.value(
+          value: cubit,
+          child: currentUser == null
+            ? const AuthDialog()
+            : InviteDialog(),
+        );
+      },
+    );
+  }
+
   Widget body() {
     return Center(
-      child: BlocBuilder<DetailViewCubit, DetailViewState>(
+      child: BlocConsumer<DetailViewCubit, DetailViewState>(
           bloc: cubit,
+          listenWhen: (_, current) => current is DetailViewListener,
+          listener: (context, state) {
+            switch (state.runtimeType) {
+              case DetailViewShowSnackBar:
+                showOverlayMessage(
+                  context: context, 
+                  message: (state as DetailViewShowSnackBar).message,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                );
+                break;
+              case DetailViewShowInviteDialog:
+                showInviteDialog();
+                break;
+            }
+          },
+          buildWhen: (_, current) => current is DetailViewLoaded || current is DetailViewLoading,
           builder: (context, state) {
             if (state is DetailViewLoading) {
               return const CircularProgressIndicator();
@@ -74,6 +106,9 @@ class DetailView extends StatelessWidget {
                 showOverlayMessage(context: context, message: Strings.notImplementedText);
               },
               icon: const Icon(Icons.edit)),
+          IconButton(
+              onPressed: () => cubit.showShareDialog(),
+              icon: const Icon(Icons.person_add)),
         ],
       ),
       body: body(),
