@@ -71,7 +71,7 @@ class DetailView extends StatelessWidget {
         actions: [
           IconButton(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(Strings.notImplementedText)));
+                showOverlayMessage(context: context, message: Strings.notImplementedText);
               },
               icon: const Icon(Icons.edit)),
         ],
