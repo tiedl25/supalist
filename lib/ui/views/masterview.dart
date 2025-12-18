@@ -142,7 +142,7 @@ class MasterView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 2),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: Theme.of(context).colorScheme.surfaceContainer,
         border: Border.all(style: BorderStyle.none),
         borderRadius: const BorderRadius.all(Radius.circular(Values.borderRadius)),
       ),
@@ -151,7 +151,7 @@ class MasterView extends StatelessWidget {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
         ),
-        tileColor: Theme.of(context).colorScheme.surface,
+        tileColor: Theme.of(context).colorScheme.surfaceContainer,
         title: Text(
           supalist.name,
           style: const TextStyle(fontSize: 20),
@@ -167,7 +167,7 @@ class MasterView extends StatelessWidget {
     cubit = context.read<MasterViewCubit>();
 
     return Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.background,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
           title: const Text(Strings.appName),
           actions: [

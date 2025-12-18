@@ -61,7 +61,7 @@ class DetailView extends StatelessWidget {
     cubit = context.read<DetailViewCubit>();
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: BlocBuilder<DetailViewCubit, DetailViewState>(
           builder: (context, state) {
@@ -160,7 +160,7 @@ class DismissibleItem extends StatelessWidget {
           ),
           child: Container(
               decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
+                  color: Theme.of(context).colorScheme.surfaceContainer,
                   borderRadius: const BorderRadius.all(
                       Radius.circular(Values.borderRadius))),
               child: CheckboxListTile(
@@ -171,7 +171,7 @@ class DismissibleItem extends StatelessWidget {
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
                 ),
-                tileColor: Theme.of(context).colorScheme.surface,
+                tileColor: Theme.of(context).colorScheme.surfaceContainer,
                 title: Text(item.name),
                 onChanged: (value) => cubit.toggleItemChecked(item),
               )),

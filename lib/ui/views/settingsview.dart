@@ -21,7 +21,7 @@ class SettingsView extends StatelessWidget {
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
           return Scaffold(
-            backgroundColor: Theme.of(context).colorScheme.surface,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
             appBar: AppBar(
               title: Text(Strings.privacyPolicyText),
             ),
@@ -45,7 +45,7 @@ class SettingsView extends StatelessWidget {
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
           return Scaffold(
-            backgroundColor: Theme.of(context).colorScheme.surface,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
             appBar: AppBar(
               title: Text(Strings.buyMeACoffeeText),
             ),
@@ -69,7 +69,7 @@ class SettingsView extends StatelessWidget {
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
           return Scaffold(
-            backgroundColor: Theme.of(context).colorScheme.surface,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
             appBar: AppBar(
               title: Text(Strings.paypalText),
             ),
@@ -132,7 +132,7 @@ class SettingsView extends StatelessWidget {
               title: const Text(Strings.darkModeText),
               value: state.darkMode,
               tileColor: state.systemTheme
-                ? Theme.of(context).colorScheme.surface
+                ? Theme.of(context).colorScheme.surfaceContainer
                 : null,
               onChanged: state.systemTheme
                 ? null
@@ -235,7 +235,7 @@ class SettingsView extends StatelessWidget {
     cubit = context.read<SettingsViewCubit>();
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text(Strings.settingsText),
       ),

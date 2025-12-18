@@ -44,7 +44,7 @@ class DialogModel extends StatelessWidget {
           scrollable: scrollable,
           title: title != null ? Text(title!) : null,
           shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius))),
-          backgroundColor: Theme.of(context).colorScheme.background,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           content: content,
           actions: onConfirmed != null ? [
             const Divider(
@@ -107,7 +107,7 @@ class TfDecorationModel extends InputDecoration {
   TfDecorationModel({required BuildContext context, required String title, IconButton? icon}) : super(
       suffixIcon: icon,
       hintText: title,
-      fillColor: Theme.of(context).colorScheme.surface,
+      fillColor: Theme.of(context).colorScheme.surfaceContainer,
       filled: true,
       enabledBorder: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
