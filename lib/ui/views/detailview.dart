@@ -28,6 +28,36 @@ class DetailView extends StatelessWidget {
     );
   }
 
+  Widget AddItemButton({required DetailViewCubit cubit, required  DetailViewLoaded state}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 5),
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Radius.circular(Values.borderRadius)),
+        color: Theme.of(context).colorScheme.primaryContainer,
+      ),
+      child: TextButton(
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
+          ),
+        ),
+        onPressed: () => state.addTile ? cubit.addItem(state.textController.text, true) : cubit.addTileToggle(),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.add, color: Colors.white),
+            SizedBox(width: 8),
+            Text(
+              Strings.addItemText,
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget body() {
     return Center(
       child: BlocConsumer<DetailViewCubit, DetailViewState>(
@@ -75,11 +105,15 @@ class DetailView extends StatelessWidget {
                   : ListView.builder(
                       physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                       padding: const EdgeInsets.only(left: 16, right: 16, bottom: 160, top: 16),
-                      itemCount: items.length + (state.addTile ? 1 : 0),
+                      itemCount: items.length + (state.addTile ? 2 : 1),
                       itemBuilder: (context, i) {
-                        return i == items.length
-                            ? ItemSuggestion(cubit: cubit)
-                            : DismissibleItem(cubit: cubit, context: context, item: items[i]);
+                        if (i == items.length && state.addTile || (!state.addTile && i == items.length + 1)) {
+                          return ItemSuggestion(cubit: cubit);
+                        } else if (i == items.length + 1 && state.addTile || (i == items.length && !state.addTile)) {
+                          return AddItemButton(cubit: cubit, state: state);
+                        }
+
+                        return DismissibleItem(cubit: cubit, context: context, item: items[i]);
                       }),
               onRefresh: () async => await cubit.loadItems(),
             );
@@ -120,34 +154,13 @@ class DetailView extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (state is DetailViewLoaded)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: state.addTile ? FloatingActionButton(
-                        onPressed: () => cubit.addTileToggle(),
-                        tooltip: Strings.removeItemTile,
-                        backgroundColor: const Color.fromARGB(255, 240, 73, 106),
-                        foregroundColor: Colors.white,
-                        heroTag: "btn1",
-                        child: const Icon(Icons.remove),
-                      )
-                    : FloatingActionButton(
-                        onPressed: () => cubit.clearCheckedItems(),
-                        tooltip: Strings.clearCheckedItems,
-                        backgroundColor: const Color.fromARGB(255, 72, 220, 139),
-                        foregroundColor: Colors.white,
-                        heroTag: "btn1",
-                        child: const Icon(Icons.clear_all),
-                    ),
+                  FloatingActionButton(
+                      onPressed: () => cubit.clearCheckedItems(),
+                      tooltip: Strings.clearCheckedItems,
+                      backgroundColor: const Color.fromARGB(255, 72, 220, 139),
+                      foregroundColor: Colors.white,
+                      child: const Icon(Icons.clear_all),
                   ),
-                FloatingActionButton(
-                  onPressed: () => state is DetailViewLoading
-                      ? null
-                      : (state as DetailViewLoaded).addTile ? cubit.addItem(state.textController.text, true) : cubit.addTileToggle(),
-                  tooltip: Strings.addItemText,
-                  foregroundColor: Colors.white,
-                  heroTag: "btn2",
-                  child: const Icon(Icons.add),
-                ),
               ],
             ),
           );
@@ -239,22 +252,32 @@ class ItemSuggestion extends StatelessWidget {
         textEditingController: state.textController,
         focusNode: FocusNode(),
         fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
-          return TextField(
-            autofocus: true,
-            focusNode: focusNode,
-            controller: textEditingController,
-            decoration: TfDecorationModel(
-              context: context,
-              title: Strings.addItemText,
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 5.0),
+            child: TextField(
+              autofocus: true,
+              focusNode: focusNode,
+              controller: textEditingController,
+              decoration: TfDecorationModel(
+                context: context,
+                title: Strings.addItemText,
+                icon: IconButton(
+                  onPressed: () => cubit.addTileToggle(),
+                  tooltip: Strings.removeItemTile,
+                  icon: Padding(
+                    padding: const EdgeInsets.only(right: 20.0),
+                    child: const Icon(Icons.remove_circle),
+                  ),
+                ),
+              ),
+              onSubmitted: (_) => cubit.addItem(state.textController.text, false),
             ),
-            onSubmitted: (_) => cubit.addItem(state.textController.text, false),
           );
         },
         optionsViewBuilder: (context, onSelected, options) {
           return Align(
             alignment: Alignment.topLeft,
             child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 5),
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(20.0),
@@ -283,7 +306,7 @@ class ItemSuggestion extends StatelessWidget {
             ),)
           );
         },
-        onSelected: (String selection) => cubit.addItem(selection, false),
+        onSelected: (String selection) => cubit.addItem(selection, true),
       );
     }); 
   }
