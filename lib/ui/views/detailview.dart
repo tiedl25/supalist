@@ -57,7 +57,7 @@ class DetailView extends StatelessWidget {
             final items = state.supalist.items.where((item) => item.history == false).toList();
 
             return RefreshIndicator(
-              child: state.supalist.items.isEmpty && !state.addTile
+              child: items.isEmpty && !state.addTile
                   ? ListView(
                       physics: const BouncingScrollPhysics(
                           parent: AlwaysScrollableScrollPhysics()),
