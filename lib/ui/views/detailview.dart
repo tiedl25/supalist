@@ -279,7 +279,7 @@ class ItemSuggestion extends StatelessWidget {
             alignment: Alignment.topLeft,
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
+                color: Theme.of(context).colorScheme.surfaceContainer,
                 borderRadius: BorderRadius.circular(20.0),
               ),
               child: ConstrainedBox(
