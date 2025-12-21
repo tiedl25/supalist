@@ -89,17 +89,19 @@ class DetailView extends StatelessWidget {
             return RefreshIndicator(
               child: items.isEmpty && !state.addTile
                   ? ListView(
-                      physics: const BouncingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics()),
-                      padding: EdgeInsets.symmetric(
-                          vertical: MediaQuery.of(context).size.height / 2.5),
-                      children: const [
-                        Center(
-                          child: Text(
-                            Strings.noItemsInListText,
-                            style: TextStyle(fontSize: 20),
+                      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Center(
+                            child: Text(
+                              Strings.noItemsInListText,
+                              style: TextStyle(fontSize: 20),
+                            ),
                           ),
-                        )
+                        ),
+                        AddItemButton(cubit: cubit, state: state),
                       ],
                     )
                   : ListView.builder(
