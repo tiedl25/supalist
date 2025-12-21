@@ -202,11 +202,11 @@ class DatabaseHelper {
   Future<Result> confirmPermission(String permissionId) async {
     PowerSyncDatabase db = await instance.database;
 
-    final permissions = await db.get("SELECT * FROM accessRights WHERE id = ?", [permissionId]);
+    final permissions = await db.getAll("SELECT * FROM accessRights WHERE id = ?", [permissionId]);
 
-    if (permissions.isEmpty) return Result.failure(Strings.notAuthorized);
+    if (permissions.isEmpty) return Result.failure(Strings.notExistOrAuthorizedText);
     
-    AccessRights permission = AccessRights.fromMap(permissions);
+    AccessRights permission = AccessRights.fromMap(permissions.first);
 
     bool newPermission = false;
 

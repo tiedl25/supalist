@@ -38,4 +38,6 @@ class Strings {
   static const String notAuthorizedShareItem = "You are not authorized to share this item!";
   static const String cannotShareWithYourself = "You cannot share a list with yourself!";
   static const String leaveText = "Leave";
+  static const String doesNotExistText = "This Supalist does not exist!";
+  static const String notExistOrAuthorizedText = "This Supalist does not exist or you are not authorized to access it!";
 }
