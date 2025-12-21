@@ -105,7 +105,16 @@ class MasterViewCubit extends Cubit<MasterViewState> {
     final state = this.state as MasterViewLoaded;
 
     state.supalists.removeWhere((element) => element.id == id);
-    DatabaseHelper.instance.remove(id);
+    await DatabaseHelper.instance.remove(id);
+
+    emit(MasterViewLoaded(supalists: state.supalists));
+  }
+
+  Future<void> leaveSupalist(String id) async {
+    final state = this.state as MasterViewLoaded;
+
+    state.supalists.removeWhere((element) => element.id == id);
+    await DatabaseHelper.instance.leave(id);
 
     emit(MasterViewLoaded(supalists: state.supalists));
   }

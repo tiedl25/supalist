@@ -5,6 +5,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:supalist/bloc/masterview_bloc.dart';
 import 'package:supalist/bloc/masterview_states.dart';
+import 'package:supalist/data/supabase.dart';
 import 'package:supalist/resources/strings.dart';
 import 'package:supalist/resources/values.dart';
 import 'package:supalist/ui/dialogs/itemdialog.dart';
@@ -113,9 +114,9 @@ class MasterView extends StatelessWidget {
   Widget dismissible(Supalist supalist) {
     return Container(
       margin: const EdgeInsets.only(bottom: 5),
-      decoration: const BoxDecoration(
-        color: Colors.red,
-        borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
+      decoration: BoxDecoration(
+        color: userId == supalist.owner ? Colors.red : Colors.orange,
+        borderRadius: const BorderRadius.all(Radius.circular(Values.borderRadius)),
       ),
       clipBehavior: Clip.hardEdge,
       child: Slidable(
@@ -125,11 +126,11 @@ class MasterView extends StatelessWidget {
           extentRatio: 0.25,
           children: [
             SlidableAction(
-              onPressed: (_) => cubit.removeSupalist(supalist.id),
-              backgroundColor: Colors.red,
+              onPressed: (_) => userId == supalist.owner ? cubit.removeSupalist(supalist.id) : cubit.leaveSupalist(supalist.id),
+              backgroundColor: userId == supalist.owner ? Colors.red : Colors.orange,
               foregroundColor: Colors.white,
-              icon: Icons.delete,
-              label: Strings.deleteText,
+              icon: userId == supalist.owner ? Icons.delete : Icons.exit_to_app,
+              label: userId == supalist.owner ? Strings.deleteText : Strings.leaveText,
             ),
           ],
         ),

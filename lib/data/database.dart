@@ -293,6 +293,11 @@ class DatabaseHelper {
     await db.execute('DELETE FROM items WHERE id = ?', [id]);
   }
 
+  Future<void> leave(String id) async {
+    PowerSyncDatabase db = await instance.database;
+    await db.execute('DELETE FROM accessRights WHERE list = ? AND user = ?', [id, userId]);
+  }
+
   Future <List<Supalist>> getLists() async {
     PowerSyncDatabase db = await instance.database;
     final rows = await db.getAll('SELECT * FROM lists');

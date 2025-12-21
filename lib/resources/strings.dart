@@ -37,4 +37,5 @@ class Strings {
   static const String invitedToSupalist = "You are invited to a Supalist. Accept by opening this link.\n\n";
   static const String notAuthorizedShareItem = "You are not authorized to share this item!";
   static const String cannotShareWithYourself = "You cannot share a list with yourself!";
+  static const String leaveText = "Leave";
 }
