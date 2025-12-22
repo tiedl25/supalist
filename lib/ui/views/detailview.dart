@@ -28,36 +28,6 @@ class DetailView extends StatelessWidget {
     );
   }
 
-  Widget AddItemButton({required DetailViewCubit cubit, required  DetailViewLoaded state}) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 5),
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.circular(Values.borderRadius)),
-        color: Theme.of(context).colorScheme.primaryContainer,
-      ),
-      child: TextButton(
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
-          ),
-        ),
-        onPressed: () => state.addTile ? cubit.addItem(state.textController.text, true) : cubit.addTileToggle(),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.add, color: Colors.white),
-            SizedBox(width: 8),
-            Text(
-              Strings.addItemText,
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget body() {
     return Center(
       child: BlocConsumer<DetailViewCubit, DetailViewState>(
@@ -101,7 +71,7 @@ class DetailView extends StatelessWidget {
                             ),
                           ),
                         ),
-                        AddItemButton(cubit: cubit, state: state),
+                        AddItemButton(context: context, cubit: cubit, state: state),
                       ],
                     )
                   : ListView.builder(
@@ -112,7 +82,7 @@ class DetailView extends StatelessWidget {
                         if (i == items.length && state.addTile || (!state.addTile && i == items.length + 1)) {
                           return ItemSuggestion(cubit: cubit);
                         } else if (i == items.length + 1 && state.addTile || (i == items.length && !state.addTile)) {
-                          return AddItemButton(cubit: cubit, state: state);
+                          return AddItemButton(context: context, cubit: cubit, state: state);
                         }
 
                         return DismissibleItem(cubit: cubit, context: context, item: items[i]);
@@ -167,6 +137,50 @@ class DetailView extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class AddItemButton extends StatelessWidget {
+  const AddItemButton({
+    super.key,
+    required this.context,
+    required this.cubit,
+    required this.state,
+  });
+
+  final BuildContext context;
+  final DetailViewCubit cubit;
+  final DetailViewLoaded state;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 5),
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Radius.circular(Values.borderRadius)),
+        color: Theme.of(context).colorScheme.primaryContainer,
+      ),
+      child: TextButton(
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
+          ),
+        ),
+        onPressed: () => state.addTile ? cubit.addItem(state.textController.text, true) : cubit.addTileToggle(),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.add, color: Colors.white),
+            SizedBox(width: 8),
+            Text(
+              Strings.addItemText,
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -279,33 +293,39 @@ class ItemSuggestion extends StatelessWidget {
         optionsViewBuilder: (context, onSelected, options) {
           return Align(
             alignment: Alignment.topLeft,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainer,
-                borderRadius: BorderRadius.circular(20.0),
-              ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: 200.0,
-                ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: options.map<Widget>((option) {
-                      return ListTile(
-                        contentPadding: const EdgeInsets.only(left: 20, right: 15),
-                        title: Text(option),
-                        onTap: () => onSelected(option),
-                        trailing: IconButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: () => cubit.deleteItem(option), 
-                          icon: const Icon(Icons.delete),
-                        ),
-                      );
-                    }).toList(),
+            child: Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(bottom: 5.0),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(20.0),
                   ),
-                ),
-            ),)
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: 200.0,
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: options.map<Widget>((option) {
+                          return ListTile(
+                            contentPadding: const EdgeInsets.only(left: 20, right: 15),
+                            title: Text(option),
+                            onTap: () => onSelected(option),
+                            trailing: IconButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () => cubit.deleteItem(option), 
+                              icon: const Icon(Icons.delete),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                ),),
+                AddItemButton(context: context, cubit: cubit, state: state)
+              ],
+            )
           );
         },
         onSelected: (String selection) => cubit.addItem(selection, true),
