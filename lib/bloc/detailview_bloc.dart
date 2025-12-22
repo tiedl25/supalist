@@ -113,10 +113,12 @@ class DetailViewCubit extends Cubit<DetailViewState> {
   void showShareDialog() async {
     if (currentUser != null) {
       if (state.supalist.owner != userId) {
+        final newState = (state as DetailViewLoaded).copy();
         emit(DetailViewShowSnackBar(
           supalist: state.supalist,
           message: Strings.notAuthorizedShareItem
         ));
+        emit(newState);
         return;
       }
     }
