@@ -56,8 +56,8 @@ class DetailViewCubit extends Cubit<DetailViewState> {
         list: state.supalist.id,
         owner: userId,
       );
-
-      state.supalist.items.add(newItem);
+      
+      state.supalist.items.insert(state.supalist.items.lastIndexWhere((item) => item.checked == false) + 1, newItem);
       await DatabaseHelper.instance.addItem(newItem);
     }
 
