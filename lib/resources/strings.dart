@@ -40,4 +40,7 @@ class Strings {
   static const String leaveText = "Leave";
   static const String doesNotExistText = "This Supalist does not exist!";
   static const String notExistOrAuthorizedText = "This Supalist does not exist or you are not authorized to access it!";
+  static const String logInForSharing = "You have to log in to join shared Supalists!";
+  static const String unknownError = "An unknown error occurred";
+  static const String notConnectedText = "You are not connected to the internet";
 }

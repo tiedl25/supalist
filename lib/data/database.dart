@@ -79,21 +79,33 @@ class DatabaseHelper {
   Future<void> uploadAllData({List<Item> items = const [], List<Supalist> lists = const []}) async {
     PowerSyncDatabase db = await instance.database;
 
+    List<AccessRights> permissions = [];
     items.forEach((item) => item.owner = userId);
-    lists.forEach((list) => list.owner = userId);
+    for (var list in lists) {
+      list.owner = userId;
+      permissions.add(AccessRights(
+        list: list.id,
+        user: list.owner,
+        userEmail: currentUser!.email,
+        expirationDate: null,
+      ));
+    }
 
     final sql = [
       'INSERT INTO lists (id, name, owner, timestamp) VALUES (?, ?, ?, ?)',
+      'INSERT INTO accessRights (id, list, user, userEmail, expirationDate) VALUES (?, ?, ?, ?, ?)',
       'INSERT INTO items (id, name, timestamp, checked, history, owner, list) VALUES (?, ?, ?, ?, ?, ?, ?)',
     ];
 
     final parameterSets = [
       lists.map((list) => list.toMap().values.toList()).toList(),
+      permissions.map((permission) => permission.toMap().values.toList()).toList(),
       items.map((item) => item.toMap().values.toList()).toList(),
     ];
 
     await db.executeBatch(sql[0], parameterSets[0]);
     await db.executeBatch(sql[1], parameterSets[1]);
+    await db.executeBatch(sql[2], parameterSets[2]);
   }
 
   Future<void> logout() async {
@@ -202,6 +214,10 @@ class DatabaseHelper {
   Future<Result> confirmPermission(String permissionId) async {
     PowerSyncDatabase db = await instance.database;
 
+    if (!loggedIn) {
+      return Result.failure(Strings.logInForSharing);
+    }
+
     final permissions = await db.getAll("SELECT * FROM accessRights WHERE id = ?", [permissionId]);
 
     if (permissions.isEmpty) return Result.failure(Strings.notExistOrAuthorizedText);
@@ -255,12 +271,14 @@ class DatabaseHelper {
 
     await db.execute('INSERT INTO lists (id, name, owner, timestamp) VALUES (?, ?, ?, ?)', itemlist.toMap().values.toList());
 
-    await addPermission(AccessRights(
-      list: itemlist.id,
-      user: itemlist.owner!,
-      userEmail: currentUser!.email,
-      expirationDate: null,
-    ));    
+    if (loggedIn) {
+      await addPermission(AccessRights(
+        list: itemlist.id,
+        user: itemlist.owner,
+        userEmail: currentUser!.email,
+        expirationDate: null,
+      )); 
+    }   
 
     for (Item item in itemlist.items) {
       await addItem(item);

@@ -26,11 +26,22 @@ class AuthView extends StatelessWidget {
         message: Strings.checkEmail,
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
-    onError: (error) => showOverlayMessage(
+    onError: (error) {
+      String message = Strings.unknownError;
+      if (error is AuthApiException) {
+        message = error.message;
+      } else if (error is AuthRetryableFetchException) {
+        message = Strings.notConnectedText;
+      } else if (error is Exception) {
+        message = error.toString();
+      }
+
+      return showOverlayMessage(
         context: context, 
-        message: (error as AuthApiException).message,
+        message: message,
         backgroundColor: Theme.of(context).colorScheme.primary,
-      )    
+      );
+    },
   );
 
   TextButton get offlineButton => TextButton(
