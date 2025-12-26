@@ -35,6 +35,9 @@ class InviteDialog extends StatelessWidget {
   Future<void> showShareDialog(DetailViewShareDialogShowLink state) async {
     if (state.overlayEntry.mounted) {
       state.overlayEntry.remove();
+    } else {
+      await Future.delayed(Duration(microseconds: 100));
+      state.overlayEntry.remove();
     }
 
     await SharePlus.instance.share(ShareParams(
