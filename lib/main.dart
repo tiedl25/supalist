@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:supalist/app_config.dart';
 import 'package:supalist/bloc/detailview_bloc.dart';
 import 'package:supalist/bloc/masterview_bloc.dart';
 import 'package:supalist/bloc/settingsview_bloc.dart';
@@ -53,8 +52,8 @@ Future main() async {
   }
 
   await Supabase.initialize(
-    url: AppConfig.supabaseUrl,
-    anonKey: AppConfig.supabaseAnonKey,
+    url: const String.fromEnvironment("supabaseUrl"),
+    anonKey: const String.fromEnvironment("supabaseAnonKey"),
   );
 
   updateCheck();

@@ -1,6 +1,5 @@
 import 'package:powersync/powersync.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:supalist/app_config.dart';
 import 'package:logging/logging.dart';
 final log = Logger('powersync-supabase');
 
@@ -36,7 +35,7 @@ class BackendConnector extends PowerSyncBackendConnector {
         : DateTime.fromMillisecondsSinceEpoch(session.expiresAt! * 3600);
 
     return PowerSyncCredentials(
-      endpoint: AppConfig.powersyncUrl,
+      endpoint: const String.fromEnvironment("powersyncUrl"),
       token: token,
       userId: userId,
       expiresAt: expiresAt,
@@ -64,9 +63,9 @@ class BackendConnector extends PowerSyncBackendConnector {
 
   Future<SupabaseClient> getSupabaseClient(PowerSyncDatabase database) async {
     final supabase = SupabaseClient(
-      AppConfig.supabaseUrl, 
-      AppConfig.supabaseAnonKey
-      );
+      const String.fromEnvironment("supabaseUrl"),
+      const String.fromEnvironment("supabaseAnonKey"),
+    );
 
     return supabase;
   }
