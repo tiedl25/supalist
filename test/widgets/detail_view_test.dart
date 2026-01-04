@@ -23,13 +23,13 @@ class FakeDetailCubit extends Cubit<DetailViewState> implements DetailViewCubit 
   void addItem(String title, bool keepAdding) async {
     if (title.isEmpty) return;
     final state = this.state as DetailViewLoaded;
-    final newItem = Item(id: DateTime.now().millisecondsSinceEpoch, name: title);
+    final newItem = Item(id: DateTime.now().millisecondsSinceEpoch.toString(), name: title, owner: state.supalist.owner, list: state.supalist.id);
     state.supalist.items.add(newItem);
     emit(state.copy());
   }
 
   @override
-  void removeItem(int itemId) async {
+  void removeItem(String itemId) async {
     final state = this.state as DetailViewLoaded;
     state.supalist.items.removeWhere((e) => e.id == itemId);
     emit(state.copy());
@@ -44,12 +44,33 @@ class FakeDetailCubit extends Cubit<DetailViewState> implements DetailViewCubit 
       emit(state.copy());
     }
   }
+  
+  @override
+  void clearCheckedItems() {
+    final state = this.state as DetailViewLoaded;
+    state.supalist.items.removeWhere((e) => e.checked);
+    emit(state.copy());
+  }
+  
+  @override
+  void deleteItem(String itemName) {
+    final state = this.state as DetailViewLoaded;
+    state.supalist.items.removeWhere((e) => e.name == itemName);
+    emit(state.copy());
+  }
+  
+  @override
+  void sortItems() {
+    final state = this.state as DetailViewLoaded;
+    state.supalist.items.sort((a, b) => a.name.compareTo(b.name));
+    emit(state.copy());
+  }
 }
 
 void main() {
   testWidgets('DetailView shows items and toggles checkbox', (WidgetTester tester) async {
-    final s = Supalist(id: 1, name: 'List A');
-    s.items.add(Item(id: 10, name: 'Item 1', checked: false));
+    final s = Supalist(id: '1', name: 'List A', owner: 'tester');
+    s.items.add(Item(id: '10', name: 'Item 1', checked: false, owner: 'tester', list: '1'));
 
     final cubit = FakeDetailCubit(s);
 

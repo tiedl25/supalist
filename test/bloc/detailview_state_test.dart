@@ -4,7 +4,7 @@ import 'package:supalist/models/supalist.dart';
 
 void main() {
   test('DetailViewLoaded copy and fromLoading', () {
-    final s = Supalist(id: 1, name: 'List A');
+    final s = Supalist(id: '1', name: 'List A', owner: 'tester');
     final loading = DetailViewLoading(supalist: s);
 
     final loaded = DetailViewLoaded.fromLoading(loading, addTile: true);

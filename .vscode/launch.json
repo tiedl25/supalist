@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+        "name": "Launch",
+        "request": "launch",
+        "type": "dart",
+        "program": "lib/main.dart",
+        "args": [
+            "--dart-define-from-file",
+            "keys.json"
+        ]
+        }
+    ]
+}

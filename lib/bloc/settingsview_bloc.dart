@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supalist/bloc/settingsview_states.dart';
 import 'package:supalist/bloc/theme_bloc.dart';
+import 'package:supalist/data/database.dart';
 
 class SettingsViewCubit extends Cubit<SettingsViewState> {
   final ThemeCubit themeCubit;
@@ -43,5 +44,32 @@ class SettingsViewCubit extends Cubit<SettingsViewState> {
 
     themeCubit.toggleDarkMode(value, platformBrightness);
     emit(state);
+  }
+
+  Future<void> login() async {
+    await prefs.setBool('offline', false);
+
+    emit(SettingsViewLogin());
+  }
+
+  void showLogoutDialog() {
+    final newState = SettingsViewLogoutDialog.from(state as SettingsViewLoaded);
+
+    emit(SettingsViewShowLogoutDialog());
+
+    emit(newState);
+  }
+
+  Future<void> confirmLogout() async {
+    await prefs.setBool('offline', false);
+    await DatabaseHelper.instance.logout();
+
+    emit(SettingsViewLogout());
+  }
+
+  void dismissLogout() {
+    final newState = SettingsViewLoaded.from(state as SettingsViewLogoutDialog);
+
+    emit(newState);
   }
 }

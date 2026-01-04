@@ -1,8 +1,11 @@
 import 'package:bloc/bloc.dart';
 import 'package:supalist/bloc/detailview_states.dart';
 import 'package:supalist/data/database.dart';
+import 'package:supalist/data/supabase.dart';
+import 'package:supalist/models/access_rights.dart';
 import 'package:supalist/models/item.dart';
 import 'package:supalist/models/supalist.dart';
+import 'package:supalist/resources/strings.dart';
 
 class DetailViewCubit extends Cubit<DetailViewState> {
   DetailViewCubit(Supalist supalist) : super(DetailViewLoading(supalist: supalist)) {
@@ -14,7 +17,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
       this.state,
     );
 
-    state.supalist.items = await DatabaseHelper.instance.getItems(state.supalist.id!);
+    state.supalist.items = await DatabaseHelper.instance.getItems(id: state.supalist.id);
     sortItems();
 
     emit(state);
@@ -45,19 +48,23 @@ class DetailViewCubit extends Cubit<DetailViewState> {
       existingItem.checked = false;
       await DatabaseHelper.instance.updateItem(existingItem);
     } else {
+
       final newItem = Item(
         name: title,
         checked: false,
+        history: false,
+        list: state.supalist.id,
+        owner: userId,
       );
-
-      state.supalist.items.add(newItem);
-      newItem.id = await DatabaseHelper.instance.addItem(newItem, state.supalist.id!);
+      
+      state.supalist.items.insert(state.supalist.items.lastIndexWhere((item) => item.checked == false) + 1, newItem);
+      await DatabaseHelper.instance.addItem(newItem);
     }
 
     emit(state.copy(addTile: keepAdding)..textController.clear());
   }
 
-  void removeItem(int itemId) async {
+  void removeItem(String itemId) async {
     final state = this.state as DetailViewLoaded;
 
     final item = state.supalist.items.firstWhere((element) => element.id == itemId);
@@ -72,7 +79,7 @@ class DetailViewCubit extends Cubit<DetailViewState> {
 
     final item = state.supalist.items.firstWhere((element) => element.name == itemName);
     state.supalist.items.remove(item);
-    await DatabaseHelper.instance.removeItem(item.id!);
+    await DatabaseHelper.instance.removeItem(item.id);
     emit(state.copy());
   }
 
@@ -101,5 +108,52 @@ class DetailViewCubit extends Cubit<DetailViewState> {
     }
 
     emit(state.copy());
+  }
+
+  void showShareDialog() async {
+    if (currentUser != null) {
+      if (state.supalist.owner != userId) {
+        final newState = (state as DetailViewLoaded).copy();
+        emit(DetailViewShowSnackBar(
+          supalist: state.supalist,
+          message: Strings.notAuthorizedShareItem
+        ));
+        emit(newState);
+        return;
+      }
+    }
+    
+    final newState = DetailViewShareDialog.from((state as DetailViewLoaded));
+
+    emit(DetailViewShowInviteDialog(supalist: state.supalist));
+
+    emit(newState);
+  }
+
+  void closeShareDialog() {
+    emit(DetailViewLoaded.from(state));
+  }
+
+  void showLink(String email) async {
+    final state = (this.state as DetailViewShareDialog).copy();
+
+    AccessRights permission = AccessRights(
+      list: state.supalist.id,
+      userEmail: email.isEmpty ? null : email,
+      expirationDate: DateTime.now().add(const Duration(days: 1)));
+
+    final result = await DatabaseHelper.instance.addSharePermission(permission);
+
+    if (!result.isSuccess) {
+      state.overlayEntry.remove();
+      emit(DetailViewShareDialogShowSnackBar(supalist: state.supalist, overlayEntry: state.overlayEntry, message: result.message!));
+    } else {
+      permission = result.value!;
+      String message = Strings.invitedToSupalist;
+      message += 'https://tmc.tiedl.rocks/supalist?id=${permission.id}';
+      emit(DetailViewShareDialogShowLink(supalist: state.supalist, overlayEntry: state.overlayEntry, message: message));
+    }
+    
+    emit(state);
   }
 }

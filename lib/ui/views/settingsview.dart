@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supalist/bloc/settingsview_bloc.dart';
 import 'package:supalist/bloc/settingsview_states.dart';
+import 'package:supalist/data/supabase.dart';
 import 'package:supalist/resources/strings.dart';
 import 'package:supalist/resources/values.dart';
+import 'package:supalist/ui/widgets/customDialog.dart';
+import 'package:supalist/ui/widgets/ui_model.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class SettingsView extends StatelessWidget {
@@ -18,7 +21,7 @@ class SettingsView extends StatelessWidget {
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
           return Scaffold(
-            backgroundColor: Theme.of(context).colorScheme.surface,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
             appBar: AppBar(
               title: Text(Strings.privacyPolicyText),
             ),
@@ -42,7 +45,7 @@ class SettingsView extends StatelessWidget {
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
           return Scaffold(
-            backgroundColor: Theme.of(context).colorScheme.surface,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
             appBar: AppBar(
               title: Text(Strings.buyMeACoffeeText),
             ),
@@ -66,7 +69,7 @@ class SettingsView extends StatelessWidget {
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
           return Scaffold(
-            backgroundColor: Theme.of(context).colorScheme.surface,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
             appBar: AppBar(
               title: Text(Strings.paypalText),
             ),
@@ -81,6 +84,26 @@ class SettingsView extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  Future<void> showLogoutDialog() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return CustomDialog(
+          content: Text(
+            Strings.logoutDialogTitle,
+            style: TextStyle(fontSize: 20),
+          ),
+          pop: false,
+          onConfirmed: () async => await showLoadingEntry(
+            context: context,
+            onWait: () async => await cubit.confirmLogout(),
+          ),
+          onDismissed: () async => cubit.dismissLogout(),
+        );
+      },
     );
   }
 
@@ -109,7 +132,7 @@ class SettingsView extends StatelessWidget {
               title: const Text(Strings.darkModeText),
               value: state.darkMode,
               tileColor: state.systemTheme
-                ? Theme.of(context).colorScheme.surface
+                ? Theme.of(context).colorScheme.surfaceContainer
                 : null,
               onChanged: state.systemTheme
                 ? null
@@ -182,17 +205,59 @@ class SettingsView extends StatelessWidget {
     );
   }
 
+  Widget userSegment() {
+    return Container(
+      margin: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainer,
+          border: Border.all(
+            style: BorderStyle.none,
+          ),
+          borderRadius: BorderRadius.circular(20)),
+      child: activeSession
+        ? ListTile(
+            title: Text(Strings.logout),
+            trailing: Icon(Icons.logout),
+            onTap: () => cubit.showLogoutDialog(),
+          )
+        : ListTile(
+            title: Text(Strings.login),
+            trailing: Icon(Icons.login),
+            onTap: () async => cubit.login(),
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     this.context = context;
     cubit = context.read<SettingsViewCubit>();
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text(Strings.settingsText),
       ),
-      body: BlocBuilder<SettingsViewCubit, SettingsViewState>(
+      body: BlocConsumer<SettingsViewCubit, SettingsViewState>(
+          listenWhen: (previous, current) => current is SettingsViewListener,
+          listener: (context, state) {
+            switch (state.runtimeType) {
+              case SettingsViewShowPrivacyPolicy:
+                showPrivacyPolicy();
+                break;
+              case SettingsViewShowLogoutDialog:
+                showLogoutDialog();
+                break;
+              case SettingsViewLogin:
+                Navigator.pushNamedAndRemoveUntil(context, '/auth', (route) => false);
+                break;
+              case SettingsViewLogout:
+                Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+                break;
+            }
+          },
+          buildWhen: (previous, current) => current is! SettingsViewListener,
           builder: (context, state) {
             if (state is SettingsViewLoading) {
               return const Center(child: CircularProgressIndicator());
@@ -206,6 +271,7 @@ class SettingsView extends StatelessWidget {
                   themeSegment(state),
                   infoSegment(state.version),
                   donationSegment(),
+                  userSegment(),
                 ],
               ),
             );

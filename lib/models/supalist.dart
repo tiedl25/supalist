@@ -1,19 +1,22 @@
 import 'package:supalist/models/item.dart';
+import 'package:uuid/uuid.dart';
 
 class Supalist{
-  int? id;
+  String id;
   String name;
-  bool owner;
+  String? owner;
   late DateTime timestamp;
 
   List<Item> items = [];
 
-  Supalist({this.id, required this.name, this.owner=true, timestamp}) : timestamp = timestamp ?? DateTime.now();
+  Supalist({String? id, required this.name, required this.owner, timestamp}) : 
+    id = id ?? Uuid().v4(),
+    timestamp = timestamp ?? DateTime.now();
 
   Map<String, dynamic> toMap() => {
-    'name': name,
     'id': id,
-    'owner': owner ? 1 : 0,
+    'name': name,
+    'owner': owner,
     'timestamp': timestamp.toString(),
   };
 
@@ -21,7 +24,7 @@ class Supalist{
     return Supalist(
       name: map['name'],
       id: map['id'],
-      owner: map['owner'] == 1 ? true : false,
+      owner: map['owner'],
       timestamp: DateTime.parse(map['timestamp']),
     );
   }

@@ -3,15 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supalist/bloc/detailview_bloc.dart';
 import 'package:supalist/bloc/masterview_bloc.dart';
 import 'package:supalist/bloc/settingsview_bloc.dart';
 import 'package:supalist/bloc/theme_bloc.dart';
+import 'package:supalist/ui/views/authview.dart';
 import 'package:supalist/ui/views/detailview.dart';
 import 'package:supalist/ui/views/masterview.dart';
 import 'package:supalist/ui/theme/dark_theme.dart';
 import 'package:supalist/ui/theme/light_theme.dart';
 import 'package:supalist/ui/views/settingsview.dart';
+import 'package:supalist/ui/views/splashview.dart';
 
 void updateCheck() {
   if (!kDebugMode) {
@@ -44,6 +47,15 @@ Future main() async {
 
   final prefs = await SharedPreferences.getInstance();
 
+  if (prefs.getBool('offline') == null) {
+    prefs.setBool('offline', false);
+  }
+
+  await Supabase.initialize(
+    url: const String.fromEnvironment("supabaseUrl"),
+    anonKey: const String.fromEnvironment("supabaseAnonKey"),
+  );
+
   updateCheck();
 
   runApp(MyApp(prefs: prefs));
@@ -65,10 +77,12 @@ class MyApp extends StatelessWidget {
             theme: lightTheme,
             darkTheme: darkTheme,
             themeMode: themeMode,
-            initialRoute: "/home",
+            initialRoute: "/",
             routes: {
+              '/': (context) => SplashView(prefs: prefs),
+              '/auth': (context) => AuthView(prefs: prefs),
               '/home': (context) => BlocProvider(
-                create: (context) => MasterViewCubit(),
+                create: (context) => MasterViewCubit(prefs: prefs),
                 child: MasterView(),
               ),
               '/settings': (context) => BlocProvider(

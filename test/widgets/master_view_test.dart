@@ -23,12 +23,12 @@ class FakeMasterCubit extends Cubit<MasterViewState> implements MasterViewCubit 
   Future<void> loadSupalists() async {}
 
   @override
-  Future<void> removeSupalist(int id) async {}
+  Future<void> removeSupalist(String id) async {}
 }
 
 void main() {
   testWidgets('MasterView shows supalist title', (WidgetTester tester) async {
-    final supalist = Supalist(id: 1, name: 'My List');
+    final supalist = Supalist(id: '1', name: 'My List', owner: 'tester');
     final cubit = FakeMasterCubit([supalist]);
 
     await tester.pumpWidget(MaterialApp(

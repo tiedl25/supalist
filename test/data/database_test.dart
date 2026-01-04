@@ -49,13 +49,12 @@ void main() {
     await DatabaseHelper.instance.delete();
 
     // Create a list with two items
-    final list = Supalist(name: 'Test List');
-    list.items.add(Item(name: 'a'));
-    list.items.add(Item(name: 'b'));
+    final list = Supalist(name: 'Test List', owner: 'tester');
+    list.items.add(Item(name: 'a', owner: 'tester', list: list.id));
+    list.items.add(Item(name: 'b', owner: 'tester', list: list.id));
 
-    final id = await DatabaseHelper.instance.add(list);
-    expect(id, isNonZero);
-
+    await DatabaseHelper.instance.addList(list);
+    final id = list.id;
     final all = await DatabaseHelper.instance.getLists();
     expect(all.any((e) => e.id == id), isTrue);
 
@@ -64,7 +63,7 @@ void main() {
 
     // Update
     fetched.name = 'Updated';
-    await DatabaseHelper.instance.update(fetched);
+    await DatabaseHelper.instance.updateList(fetched);
     final fetched2 = await DatabaseHelper.instance.getList(id);
     expect(fetched2.name, 'Updated');
 

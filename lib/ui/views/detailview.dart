@@ -3,8 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:supalist/bloc/detailview_bloc.dart';
 import 'package:supalist/bloc/detailview_states.dart';
+import 'package:supalist/data/supabase.dart';
 import 'package:supalist/resources/strings.dart';
 import 'package:supalist/resources/values.dart';
+import 'package:supalist/ui/dialogs/invitedialog.dart';
 import 'package:supalist/ui/widgets/ui_model.dart';
 import 'package:supalist/models/item.dart';
 
@@ -12,10 +14,40 @@ class DetailView extends StatelessWidget {
   late final BuildContext context;
   late final DetailViewCubit cubit;
 
+  void showInviteDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return BlocProvider.value(
+          value: cubit,
+          child: currentUser == null
+            ? const AuthDialog()
+            : InviteDialog(),
+        );
+      },
+    );
+  }
+
   Widget body() {
     return Center(
-      child: BlocBuilder<DetailViewCubit, DetailViewState>(
+      child: BlocConsumer<DetailViewCubit, DetailViewState>(
           bloc: cubit,
+          listenWhen: (_, current) => current is DetailViewListener,
+          listener: (context, state) {
+            switch (state.runtimeType) {
+              case DetailViewShowSnackBar:
+                showOverlayMessage(
+                  context: context, 
+                  message: (state as DetailViewShowSnackBar).message,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                );
+                break;
+              case DetailViewShowInviteDialog:
+                showInviteDialog();
+                break;
+            }
+          },
+          buildWhen: (_, current) => current is DetailViewLoaded || current is DetailViewLoading,
           builder: (context, state) {
             if (state is DetailViewLoading) {
               return const CircularProgressIndicator();
@@ -25,29 +57,35 @@ class DetailView extends StatelessWidget {
             final items = state.supalist.items.where((item) => item.history == false).toList();
 
             return RefreshIndicator(
-              child: state.supalist.items.isEmpty && !state.addTile
+              child: items.isEmpty && !state.addTile
                   ? ListView(
-                      physics: const BouncingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics()),
-                      padding: EdgeInsets.symmetric(
-                          vertical: MediaQuery.of(context).size.height / 2.5),
-                      children: const [
-                        Center(
-                          child: Text(
-                            Strings.noItemsInListText,
-                            style: TextStyle(fontSize: 20),
+                      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Center(
+                            child: Text(
+                              Strings.noItemsInListText,
+                              style: TextStyle(fontSize: 20),
+                            ),
                           ),
-                        )
+                        ),
+                        AddItemButton(context: context, cubit: cubit, state: state),
                       ],
                     )
                   : ListView.builder(
                       physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                       padding: const EdgeInsets.only(left: 16, right: 16, bottom: 160, top: 16),
-                      itemCount: items.length + (state.addTile ? 1 : 0),
+                      itemCount: items.length + (state.addTile ? 2 : 1),
                       itemBuilder: (context, i) {
-                        return i == items.length
-                            ? ItemSuggestion(cubit: cubit)
-                            : DismissibleItem(cubit: cubit, context: context, item: items[i]);
+                        if (i == items.length && state.addTile || (!state.addTile && i == items.length + 1)) {
+                          return ItemSuggestion(cubit: cubit);
+                        } else if (i == items.length + 1 && state.addTile || (i == items.length && !state.addTile)) {
+                          return AddItemButton(context: context, cubit: cubit, state: state);
+                        }
+
+                        return DismissibleItem(cubit: cubit, context: context, item: items[i]);
                       }),
               onRefresh: () async => await cubit.loadItems(),
             );
@@ -61,7 +99,7 @@ class DetailView extends StatelessWidget {
     cubit = context.read<DetailViewCubit>();
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: BlocBuilder<DetailViewCubit, DetailViewState>(
           builder: (context, state) {
@@ -71,9 +109,12 @@ class DetailView extends StatelessWidget {
         actions: [
           IconButton(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(Strings.notImplementedText)));
+                showOverlayMessage(context: context, message: Strings.notImplementedText);
               },
               icon: const Icon(Icons.edit)),
+          IconButton(
+              onPressed: () => cubit.showShareDialog(),
+              icon: const Icon(Icons.person_add)),
         ],
       ),
       body: body(),
@@ -85,38 +126,61 @@ class DetailView extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (state is DetailViewLoaded)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: state.addTile ? FloatingActionButton(
-                        onPressed: () => cubit.addTileToggle(),
-                        tooltip: Strings.removeItemTile,
-                        backgroundColor: const Color.fromARGB(255, 240, 73, 106),
-                        foregroundColor: Colors.white,
-                        heroTag: "btn1",
-                        child: const Icon(Icons.remove),
-                      )
-                    : FloatingActionButton(
-                        onPressed: () => cubit.clearCheckedItems(),
-                        tooltip: Strings.clearCheckedItems,
-                        backgroundColor: const Color.fromARGB(255, 72, 220, 139),
-                        foregroundColor: Colors.white,
-                        heroTag: "btn1",
-                        child: const Icon(Icons.clear_all),
-                    ),
+                  FloatingActionButton(
+                      onPressed: () => cubit.clearCheckedItems(),
+                      tooltip: Strings.clearCheckedItems,
+                      backgroundColor: const Color.fromARGB(255, 72, 220, 139),
+                      foregroundColor: Colors.white,
+                      child: const Icon(Icons.clear_all),
                   ),
-                FloatingActionButton(
-                  onPressed: () => state is DetailViewLoading
-                      ? null
-                      : (state as DetailViewLoaded).addTile ? cubit.addItem(state.textController.text, true) : cubit.addTileToggle(),
-                  tooltip: Strings.addItemText,
-                  foregroundColor: Colors.white,
-                  heroTag: "btn2",
-                  child: const Icon(Icons.add),
-                ),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class AddItemButton extends StatelessWidget {
+  const AddItemButton({
+    super.key,
+    required this.context,
+    required this.cubit,
+    required this.state,
+  });
+
+  final BuildContext context;
+  final DetailViewCubit cubit;
+  final DetailViewLoaded state;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 5),
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Radius.circular(Values.borderRadius)),
+        color: Theme.of(context).colorScheme.primaryContainer,
+      ),
+      child: TextButton(
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
+          ),
+        ),
+        onPressed: () => state.addTile ? cubit.addItem(state.textController.text, true) : cubit.addTileToggle(),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.add, color: Colors.white),
+            SizedBox(width: 8),
+            Text(
+              Strings.addItemText,
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -150,7 +214,7 @@ class DismissibleItem extends StatelessWidget {
             extentRatio: 0.25,
             children: [
               SlidableAction(
-                onPressed: (_) => cubit.removeItem(item.id!),
+                onPressed: (_) => cubit.removeItem(item.id),
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
                 icon: Icons.delete,
@@ -160,7 +224,7 @@ class DismissibleItem extends StatelessWidget {
           ),
           child: Container(
               decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
+                  color: Theme.of(context).colorScheme.surfaceContainer,
                   borderRadius: const BorderRadius.all(
                       Radius.circular(Values.borderRadius))),
               child: CheckboxListTile(
@@ -171,7 +235,7 @@ class DismissibleItem extends StatelessWidget {
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(Radius.circular(Values.borderRadius)),
                 ),
-                tileColor: Theme.of(context).colorScheme.surface,
+                tileColor: Theme.of(context).colorScheme.surfaceContainer,
                 title: Text(item.name),
                 onChanged: (value) => cubit.toggleItemChecked(item),
               )),
@@ -204,51 +268,67 @@ class ItemSuggestion extends StatelessWidget {
         textEditingController: state.textController,
         focusNode: FocusNode(),
         fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
-          return TextField(
-            autofocus: true,
-            focusNode: focusNode,
-            controller: textEditingController,
-            decoration: TfDecorationModel(
-              context: context,
-              title: Strings.addItemText,
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 5.0),
+            child: TextField(
+              autofocus: true,
+              focusNode: focusNode,
+              controller: textEditingController,
+              decoration: TfDecorationModel(
+                context: context,
+                title: Strings.addItemText,
+                icon: IconButton(
+                  onPressed: () => cubit.addTileToggle(),
+                  tooltip: Strings.removeItemTile,
+                  icon: Padding(
+                    padding: const EdgeInsets.only(right: 20.0),
+                    child: const Icon(Icons.remove_circle),
+                  ),
+                ),
+              ),
+              onSubmitted: (_) => cubit.addItem(state.textController.text, false),
             ),
-            onSubmitted: (_) => cubit.addItem(state.textController.text, false),
           );
         },
         optionsViewBuilder: (context, onSelected, options) {
           return Align(
             alignment: Alignment.topLeft,
-            child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 5),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(20.0),
-              ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: 200.0,
-                ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: options.map<Widget>((option) {
-                      return ListTile(
-                        contentPadding: const EdgeInsets.only(left: 20, right: 15),
-                        title: Text(option),
-                        onTap: () => onSelected(option),
-                        trailing: IconButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: () => cubit.deleteItem(option), 
-                          icon: const Icon(Icons.delete),
-                        ),
-                      );
-                    }).toList(),
+            child: Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(bottom: 5.0),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(20.0),
                   ),
-                ),
-            ),)
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: 200.0,
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: options.map<Widget>((option) {
+                          return ListTile(
+                            contentPadding: const EdgeInsets.only(left: 20, right: 15),
+                            title: Text(option),
+                            onTap: () => onSelected(option),
+                            trailing: IconButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () => cubit.deleteItem(option), 
+                              icon: const Icon(Icons.delete),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                ),),
+                AddItemButton(context: context, cubit: cubit, state: state)
+              ],
+            )
           );
         },
-        onSelected: (String selection) => cubit.addItem(selection, false),
+        onSelected: (String selection) => cubit.addItem(selection, true),
       );
     }); 
   }
